@@ -1,3 +1,10 @@
+/*
+
+		ernst.go
+		A very unfriendly IRC bot
+
+*/
+
 package main
 
 import (
@@ -11,10 +18,10 @@ import (
 	"strings"
 )
 
-const channel = "#ljusdal";
+const channel = "#kakapa";
 const serverssl = "irc.inet.tele.dk:6697"
 const fname = "./skymfer.txt"
-const ircnick = "ernst"
+const ircnick = "ernst8"
 const ircuname = "ErnstHugo"
 
 const rate = 10
@@ -91,6 +98,9 @@ func main() {
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		go func(event *irc.Event) {
 
+			lcnick := strings.ToLower(ircnick)
+			lcstr := strings.ToLower(event.Arguments[1])
+
 			if event.Arguments[0] == channel && strings.HasPrefix(event.Arguments[1], addkey) {
 				skymf := strings.TrimPrefix(event.Arguments[1], addkey)
 				if wrskymf(f, rnd, skymf, mindel, maxdel) {
@@ -108,7 +118,8 @@ func main() {
 				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 			}
 
-			if event.Arguments[0] == channel && strings.Contains(event.Message(), ircnick) {
+			// UNTESTED
+			if event.Arguments[0] == channel && strings.Contains(lcstr, lcnick) {
 				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 			}
 
