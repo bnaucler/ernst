@@ -4,14 +4,19 @@ import (
 	"github.com/thoj/go-ircevent"
 	"crypto/tls"
 	"bufio"
+	"fmt"
 	"time"
 	"math/rand"
 	"os"
 )
 
-const channel = "#test";
-const serverssl = "irc.apansson.se:6697"
+const channel = "#ljusdal";
+const serverssl = "irc.inet.tele.dk:6697"
 const fname = "./skymfer.txt"
+const ircnick = "ernst"
+const ircuname = "ErnstHugo"
+
+const rate = 10
 
 func cherr(e error) { if e != nil { panic(e) } }
 
@@ -23,8 +28,8 @@ func getskymf(f *os.File, r1 *rand.Rand, numln int) (skymf string) {
 	scanner := bufio.NewScanner(f)
 	for a := 0; a < randln; a++ {
 		scanner.Scan()
-		skymf = scanner.Text()
 	}
+	skymf = scanner.Text()
 
 	return
 }
@@ -47,8 +52,6 @@ func main() {
 
 	numln := clines(f)
 
-	ircnick := "ernst"
-	ircuname := "elak"
 	irccon := irc.IRC(ircnick, ircuname)
 
 	irccon.VerboseCallbackHandler = true
@@ -57,10 +60,27 @@ func main() {
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
 	// irccon.AddCallback("366", func(e *irc.Event) {  })
+
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
-		skymf := getskymf(f, r1, numln)
-		irccon.Privmsg(event.Nick, skymf)
+		go func(event *irc.Event) {
+
+			if event.Arguments[0] == channel {
+				if r1.Intn(1000) < rate {
+					skymf := fmt.Sprintf("%v: %v", event.Nick, getskymf(f, r1, numln))
+					time.Sleep(time.Duration(r1.Intn(5000) + 200) * time.Millisecond)
+					irccon.Privmsg(channel, skymf)
+				}
+			}
+
+			// UNTESTED
+			if event.Arguments[0] == ircnick {
+				skymf := fmt.Sprintf("%v: %v", event.Arguments[1], getskymf(f, r1, numln))
+				irccon.Privmsg(channel, skymf)
+			}
+
+		}(event)
 	});
+
 	err = irccon.Connect(serverssl)
 	cherr(err)
 
