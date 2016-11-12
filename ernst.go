@@ -21,10 +21,10 @@ const rate = 10
 
 func cherr(e error) { if e != nil { panic(e) } }
 
-func getskymf(f *os.File, r1 *rand.Rand, numln int) (skymf string) {
+func getskymf(f *os.File, rnd *rand.Rand, numln int) (skymf string) {
 
 	f.Seek(0, 0)
-	randln := r1.Intn(numln)
+	randln := rnd.Intn(numln)
 
 	scanner := bufio.NewScanner(f)
 	for a := 0; a < randln; a++ {
@@ -42,15 +42,21 @@ func clines(f *os.File) (lines int) {
 	return
 }
 
-func skymf(target, skymf string, r1 *rand.Rand, maxdel, mindel int) bool {
+func sskymf(irccon *irc.Connection,f *os.File, numln int, channel,
+	target string, rnd *rand.Rand, mindel, maxdel int) bool {
 
+	skymf := fmt.Sprintf("%v: %v", target, getskymf(f, rnd, numln))
+	time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
+	irccon.Privmsg(channel, skymf)
+	return true
 }
 
 func main() {
 
-	// Combine?
-	s1 := rand.NewSource(time.Now().UnixNano())
-    r1 := rand.New(s1)
+    rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	mindel := 200
+	maxdel := 5000
 
 	f, err := os.Open(fname)
 	cherr(err)
@@ -66,28 +72,27 @@ func main() {
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
 
+	irccon.AddCallback("CTCP_VERSION", func(e *irc.Event) {
+		irccon.SendRawf("NOTICE %s :\x01VERSION %s\x01", e.Nick, "Skam och skuld")
+	})
+
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		go func(event *irc.Event) {
 
-			if event.Arguments[0] == channel) {
-				if r1.Intn(1000) < rate {
-					skymf := fmt.Sprintf("%v: %v", event.Nick, getskymf(f, r1, numln))
-					time.Sleep(time.Duration(r1.Intn(5000) + 200) * time.Millisecond)
-					irccon.Privmsg(channel, skymf)
+			if event.Arguments[0] == channel {
+				if rnd.Intn(1000) < rate {
+					sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 				}
 			}
 
-			// UNTESTED - merge skymf func
-			if event.Arguments[0] == channel && strings.Contains(event.Message(), ircnick)) {
-				skymf := fmt.Sprintf("%v: %v", event.Nick, getskymf(f, r1, numln))
-				time.Sleep(time.Duration(r1.Intn(5000) + 200) * time.Millisecond)
-				irccon.Privmsg(channel, skymf)
+			if event.Arguments[0] == channel && strings.Contains(event.Message(), ircnick) {
+				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 			}
 
-			// UNTESTED
 			if event.Arguments[0] == ircnick {
-				skymf := fmt.Sprintf("%v: %v", event.Arguments[1], getskymf(f, r1, numln))
-				irccon.Privmsg(channel, skymf)
+				// skymf := fmt.Sprintf("%v: %v", event.Arguments[1], getskymf(f, rnd, numln))
+				// irccon.Privmsg(channel, skymf)
+				sskymf(irccon, f, numln, channel, event.Arguments[1], rnd, mindel, maxdel)
 			}
 
 		}(event)
