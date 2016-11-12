@@ -35,6 +35,14 @@ func getskymf(f *os.File, rnd *rand.Rand, numln int) (skymf string) {
 	return
 }
 
+func wrskymf(f *os.File, skymf string) bool {
+
+	skymf = fmt.Sprintf("%v\n", skymf)
+	_, err := f.WriteString(skymf)
+	cherr(err)
+	return true
+}
+
 func clines(f *os.File) (lines int) {
 
 	scanner := bufio.NewScanner(f)
@@ -42,7 +50,7 @@ func clines(f *os.File) (lines int) {
 	return
 }
 
-func sskymf(irccon *irc.Connection,f *os.File, numln int, channel,
+func sskymf(irccon *irc.Connection, f *os.File, numln int, channel,
 	target string, rnd *rand.Rand, mindel, maxdel int) bool {
 
 	skymf := fmt.Sprintf("%v: %v", target, getskymf(f, rnd, numln))
@@ -58,7 +66,9 @@ func main() {
 	mindel := 200
 	maxdel := 5000
 
-	f, err := os.Open(fname)
+	addkey := "!skymf "
+
+	f, err := os.OpenFile(fname, os.O_APPEND|os.O_RDWR, 0644)
 	cherr(err)
 	defer f.Close()
 
@@ -79,7 +89,15 @@ func main() {
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		go func(event *irc.Event) {
 
-			if event.Arguments[0] == channel {
+			if event.Arguments[0] == channel && strings.HasPrefix(event.Arguments[1], addkey) {
+				skymf := strings.TrimPrefix(event.Arguments[1], addkey)
+				if wrskymf(f, skymf) {
+					numln++
+					resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
+					irccon.Privmsg(channel, resp)
+				}
+
+			} else if event.Arguments[0] == channel {
 				if rnd.Intn(1000) < rate {
 					sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 				}
@@ -90,8 +108,6 @@ func main() {
 			}
 
 			if event.Arguments[0] == ircnick {
-				// skymf := fmt.Sprintf("%v: %v", event.Arguments[1], getskymf(f, rnd, numln))
-				// irccon.Privmsg(channel, skymf)
 				sskymf(irccon, f, numln, channel, event.Arguments[1], rnd, mindel, maxdel)
 			}
 
