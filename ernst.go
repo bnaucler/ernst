@@ -14,7 +14,7 @@ import (
 const channel = "#kakapa";
 const serverssl = "irc.inet.tele.dk:6697"
 const fname = "./skymfer.txt"
-const ircnick = "ernst7"
+const ircnick = "ernst6"
 const ircuname = "ErnstHugo"
 
 const rate = 10
@@ -35,11 +35,12 @@ func getskymf(f *os.File, rnd *rand.Rand, numln int) (skymf string) {
 	return
 }
 
-func wrskymf(f *os.File, skymf string) bool {
+func wrskymf(f *os.File, rnd *rand.Rand, skymf string, mindel, maxdel int) bool {
 
 	skymf = fmt.Sprintf("%v\n", skymf)
 	_, err := f.WriteString(skymf)
 	cherr(err)
+	time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
 	return true
 }
 
@@ -91,7 +92,7 @@ func main() {
 
 			if event.Arguments[0] == channel && strings.HasPrefix(event.Arguments[1], addkey) {
 				skymf := strings.TrimPrefix(event.Arguments[1], addkey)
-				if wrskymf(f, skymf) {
+				if wrskymf(f, rnd, skymf, mindel, maxdel) {
 					numln++
 					resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
 					irccon.Privmsg(channel, resp)
