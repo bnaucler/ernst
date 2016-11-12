@@ -8,6 +8,7 @@ import (
 	"time"
 	"math/rand"
 	"os"
+	"strings"
 )
 
 const channel = "#ljusdal";
@@ -41,8 +42,13 @@ func clines(f *os.File) (lines int) {
 	return
 }
 
+func skymf(target, skymf string, r1 *rand.Rand, maxdel, mindel int) bool {
+
+}
+
 func main() {
 
+	// Combine?
 	s1 := rand.NewSource(time.Now().UnixNano())
     r1 := rand.New(s1)
 
@@ -59,17 +65,23 @@ func main() {
 	irccon.UseTLS = true
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
-	// irccon.AddCallback("366", func(e *irc.Event) {  })
 
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		go func(event *irc.Event) {
 
-			if event.Arguments[0] == channel {
+			if event.Arguments[0] == channel) {
 				if r1.Intn(1000) < rate {
 					skymf := fmt.Sprintf("%v: %v", event.Nick, getskymf(f, r1, numln))
 					time.Sleep(time.Duration(r1.Intn(5000) + 200) * time.Millisecond)
 					irccon.Privmsg(channel, skymf)
 				}
+			}
+
+			// UNTESTED - merge skymf func
+			if event.Arguments[0] == channel && strings.Contains(event.Message(), ircnick)) {
+				skymf := fmt.Sprintf("%v: %v", event.Nick, getskymf(f, r1, numln))
+				time.Sleep(time.Duration(r1.Intn(5000) + 200) * time.Millisecond)
+				irccon.Privmsg(channel, skymf)
 			}
 
 			// UNTESTED
