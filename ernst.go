@@ -11,10 +11,10 @@ import (
 	"strings"
 )
 
-const channel = "#kakapa";
+const channel = "#ljusdal";
 const serverssl = "irc.inet.tele.dk:6697"
 const fname = "./skymfer.txt"
-const ircnick = "ernst6"
+const ircnick = "ernst"
 const ircuname = "ErnstHugo"
 
 const rate = 10
@@ -68,6 +68,7 @@ func main() {
 	maxdel := 5000
 
 	addkey := "!skymf "
+	statkey := "!skymfstat"
 
 	f, err := os.OpenFile(fname, os.O_APPEND|os.O_RDWR, 0644)
 	cherr(err)
@@ -98,10 +99,13 @@ func main() {
 					irccon.Privmsg(channel, resp)
 				}
 
-			} else if event.Arguments[0] == channel {
-				if rnd.Intn(1000) < rate {
-					sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
-				}
+			} else if event.Arguments[0] == channel && strings.HasPrefix(event.Arguments[1], statkey) {
+				resp := fmt.Sprintf("Jag kan %d skymfer.", numln)
+				time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
+				irccon.Privmsg(channel, resp)
+
+			} else if event.Arguments[0] == channel && rnd.Intn(1000) < rate {
+				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 			}
 
 			if event.Arguments[0] == channel && strings.Contains(event.Message(), ircnick) {
