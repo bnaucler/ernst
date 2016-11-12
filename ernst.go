@@ -11,10 +11,10 @@ import (
 	"strings"
 )
 
-const channel = "#ljusdal";
+const channel = "#kakapa";
 const serverssl = "irc.inet.tele.dk:6697"
 const fname = "./skymfer.txt"
-const ircnick = "ernst"
+const ircnick = "ernst7"
 const ircuname = "ErnstHugo"
 
 const rate = 10
@@ -108,7 +108,8 @@ func main() {
 			}
 
 			if event.Arguments[0] == ircnick {
-				sskymf(irccon, f, numln, channel, event.Arguments[1], rnd, mindel, maxdel)
+				target := strings.Split(event.Arguments[1], " ")
+				sskymf(irccon, f, numln, channel, target[0], rnd, mindel, maxdel)
 			}
 
 		}(event)
