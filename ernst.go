@@ -18,10 +18,10 @@ import (
 	"strings"
 )
 
-const channel = "#kakapa";
+const channel = "#ljusdal";
 const serverssl = "irc.inet.tele.dk:6697"
 const fname = "./skymfer.txt"
-const ircnick = "ernst8"
+const ircnick = "ernst"
 const ircuname = "ErnstHugo"
 
 const rate = 10
@@ -91,8 +91,8 @@ func main() {
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
 
-	irccon.AddCallback("CTCP_VERSION", func(e *irc.Event) {
-		irccon.SendRawf("NOTICE %s :\x01VERSION %s\x01", e.Nick, "Skam och skuld")
+	irccon.AddCallback("CTCP_VERSION", func(event *irc.Event) {
+		irccon.SendRawf("NOTICE %s :\x01VERSION %s\x01", event.Nick, "Skam och skuld")
 	})
 
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
@@ -118,7 +118,6 @@ func main() {
 				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 			}
 
-			// UNTESTED
 			if event.Arguments[0] == channel && strings.Contains(lcstr, lcnick) {
 				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
 			}
