@@ -40,7 +40,6 @@ func wrdb(db *bolt.DB, k, v, cbuc []byte) (err error) {
 
 func gline(f *os.File, scanner *bufio.Scanner) string {
 
-	var fmtd = []byte
 	f.Seek(1, 1)
 	scanner.Scan()
 
@@ -66,11 +65,9 @@ func main() {
 	scanner := bufio.NewScanner(f)
 	f.Seek(0, 0)
 
-	fmt.Printf("Scanner type :%T\n", scanner)
-
-	for k := 1; k < (numln + 1); k++ {
+	for k := 0; k < numln; k++ {
 		v := gline(f, scanner)
-		err = wrdb(db, []byte(strconv.Itoa(k)), []byte(v), cbuc)
+		err = wrdb(db, []byte(strconv.Itoa(k+1)), []byte(v), cbuc)
 		fmt.Printf("%d: %v\n", k, v)
 		cherr(err)
 	}
