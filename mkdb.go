@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"bufio"
-	// "unicode"
 	"strconv"
 	"github.com/boltdb/bolt"
 )
@@ -42,7 +41,6 @@ func gline(f *os.File, scanner *bufio.Scanner) string {
 
 	f.Seek(1, 1)
 	scanner.Scan()
-
 	return scanner.Text()
 }
 
@@ -71,5 +69,4 @@ func main() {
 		fmt.Printf("%d: %v\n", k, v)
 		cherr(err)
 	}
-
 }

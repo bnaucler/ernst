@@ -1,4 +1,6 @@
-*.swp
 *.db
+*.swp
 ernst
+mkdb
+dbdump
 skymfer2.txt
