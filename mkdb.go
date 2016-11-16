@@ -8,13 +8,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"bufio"
 	"strconv"
 	"github.com/boltdb/bolt"
 )
 
-func cherr(e error) { if e != nil { panic(e) } }
+func cherr(e error) { if e != nil { log.Fatal(e) } }
 
 func clines(f *os.File) (lines int) {
 
@@ -37,11 +38,17 @@ func wrdb(db *bolt.DB, k, v, cbuc []byte) (err error) {
 	return
 }
 
-func gline(f *os.File, scanner *bufio.Scanner) string {
+func gline(f *os.File, scanner *bufio.Scanner, l int64) (string, int64) {
 
-	f.Seek(1, 1)
+	_, err := f.Seek(int64(l), 0)
+	cherr(err)
+
 	scanner.Scan()
-	return scanner.Text()
+
+	pos, err := f.Seek(0, 1)
+	cherr(err)
+
+	return scanner.Text(), pos
 }
 
 func main() {
@@ -62,11 +69,16 @@ func main() {
 
 	scanner := bufio.NewScanner(f)
 	f.Seek(0, 0)
+	var pos = int64(0)
+	var v = string("")
 
 	for k := 0; k < numln; k++ {
-		v := gline(f, scanner)
+		v, pos = gline(f, scanner, pos)
 		err = wrdb(db, []byte(strconv.Itoa(k+1)), []byte(v), cbuc)
-		fmt.Printf("%d: %v\n", k, v)
+		fmt.Printf("%d(%d): %v\n", k + 1, pos, v)
 		cherr(err)
 	}
+
+	err = wrdb(db, []byte("0"), []byte(strconv.Itoa(numln)), cbuc)
+	cherr(err)
 }

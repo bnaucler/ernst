@@ -9,13 +9,16 @@ package main
 
 import (
 	"github.com/thoj/go-ircevent"
+	"github.com/boltdb/bolt"
 	"crypto/tls"
-	"bufio"
+	// "bufio"
 	"fmt"
+	"log"
 	"time"
 	"math/rand"
-	"os"
+	// "os"
 	"strings"
+	"strconv"
 )
 
 const channel = "#kakapa";
@@ -26,44 +29,46 @@ const ircuname = "ErnstHugo"
 
 const rate = 10
 
-func cherr(e error) { if e != nil { panic(e) } }
+func cherr(e error) { if e != nil { log.Fatal(e) } }
 
-func getskymf(f *os.File, rnd *rand.Rand, numln int) (skymf string) {
+func rdb(db *bolt.DB, k int, cbuc []byte) (string, error) {
 
-	f.Seek(0, 0)
-	randln := rnd.Intn(numln)
+	var v []byte
 
-	scanner := bufio.NewScanner(f)
-	for a := 0; a < randln; a++ {
-		scanner.Scan()
-	}
-	skymf = scanner.Text()
+	err := db.View(func(tx *bolt.Tx) error {
+		buc := tx.Bucket(cbuc)
+		if buc == nil { return fmt.Errorf("No bucket!") }
 
+		v = buc.Get([]byte(strconv.Itoa(k)))
+		return nil
+	})
+	return string(v), err
+}
+
+func wrdb(db *bolt.DB, k int, v string, cbuc []byte) (err error) {
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		buc, err := tx.CreateBucketIfNotExists(cbuc)
+		if err != nil { return err }
+
+		err = buc.Put([]byte(strconv.Itoa(k)), []byte(v))
+		if err != nil { return err }
+
+		return nil
+	})
 	return
 }
 
-func wrskymf(f *os.File, rnd *rand.Rand, skymf string, mindel, maxdel int) bool {
+func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
+	target string, numln int, mindel, maxdel int) bool {
 
-	skymf = fmt.Sprintf("%v\n", skymf)
-	_, err := f.WriteString(skymf)
+	ln := rnd.Intn(numln)
+	skymf, err := rdb(db, ln, cbuc)
 	cherr(err)
 	time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
-	return true
-}
+	resp := fmt.Sprintf("%v: %v", target, skymf)
+	irccon.Privmsg(channel, resp)
 
-func clines(f *os.File) (lines int) {
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() { lines++ }
-	return
-}
-
-func sskymf(irccon *irc.Connection, f *os.File, numln int, channel,
-	target string, rnd *rand.Rand, mindel, maxdel int) bool {
-
-	skymf := fmt.Sprintf("%v: %v", target, getskymf(f, rnd, numln))
-	time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
-	irccon.Privmsg(channel, skymf)
 	return true
 }
 
@@ -71,18 +76,25 @@ func main() {
 
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
+	cbuc := []byte("skymf")
+	dbname := "./ernst.db"
+
+	db, err := bolt.Open(dbname, 0640, nil)
+	cherr(err)
+	defer db.Close()
+
 	mindel := 200
 	maxdel := 5000
 
 	addkey := "!skymf "
 	statkey := "!skymfstat"
 
-	f, err := os.OpenFile(fname, os.O_APPEND|os.O_RDWR, 0644)
+	tmp, err := rdb(db, 0, cbuc)
 	cherr(err)
-	defer f.Close()
+	numln, err:= strconv.Atoi(tmp)
+	cherr(err)
 
-	numln := clines(f)
-
+	fmt.Printf("%v, %T\n", numln, numln)
 	irccon := irc.IRC(ircnick, ircuname)
 
 	irccon.VerboseCallbackHandler = true
@@ -104,8 +116,13 @@ func main() {
 			if event.Arguments[0] == channel && strings.HasPrefix(event.Arguments[1], addkey) {
 
 				skymf := strings.TrimPrefix(event.Arguments[1], addkey)
-				if wrskymf(f, rnd, skymf, mindel, maxdel) {
+				err := wrdb(db, numln, skymf, cbuc)
+
+				if err == nil {
 					numln++
+					err := wrdb(db, 0, strconv.Itoa(numln), cbuc)
+					cherr(err)
+					time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
 					resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
 					irccon.Privmsg(channel, resp)
 				}
@@ -120,16 +137,16 @@ func main() {
 			} else if event.Arguments[0] == channel && rnd.Intn(1000) < rate &&
 				event.Nick != ircnick {
 
-				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
+				sskymf(irccon, db, cbuc, rnd, event.Nick, numln, mindel, maxdel)
 			}
 
 			if event.Arguments[0] == channel && strings.Contains(lcstr, lcnick) {
-				sskymf(irccon, f, numln, channel, event.Nick, rnd, mindel, maxdel)
+				sskymf(irccon, db, cbuc, rnd, event.Nick, numln, mindel, maxdel)
 			}
 
 			if event.Arguments[0] == ircnick {
 				target := strings.Split(event.Arguments[1], " ")
-				sskymf(irccon, f, numln, channel, target[0], rnd, mindel, maxdel)
+				sskymf(irccon, db, cbuc, rnd, target[0], numln, mindel, maxdel)
 			}
 
 		}(event)
