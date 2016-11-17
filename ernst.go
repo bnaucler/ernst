@@ -101,17 +101,13 @@ func main() {
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
 
-	// irccon.AddCallback("CTCP_VERSION", func(event *irc.Event) {
-	// 	irccon.SendRawf("NOTICE %s :\x01VERSION %s\x01", event.Nick, "Skam och skuld")
-	// })
-
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		go func(event *irc.Event) {
 
 			lcnick := strings.ToLower(ircnick)
 			lcstr := strings.ToLower(event.Arguments[1])
 
-			if event.Arguments[0] == channel && strings.HasPrefix(event.Arguments[1], addkey) {
+			if event.Arguments[0] == channel && strings.HasPrefix(lcstr, addkey) {
 
 				skymf := strings.TrimPrefix(event.Arguments[1], addkey)
 				err := wrdb(db, numln, skymf, cbuc)
@@ -126,7 +122,7 @@ func main() {
 				}
 
 			} else if event.Arguments[0] == channel &&
-				strings.HasPrefix(event.Arguments[1], statkey) {
+				strings.HasPrefix(lcstr, statkey) {
 
 				resp := fmt.Sprintf("Jag kan %d skymfer.", numln)
 				time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)

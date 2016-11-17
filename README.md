@@ -15,13 +15,10 @@ Thomas Jager (for go-ircevent)
 * Multiple servers
 * Response speed depending on line length
 * Adjustable ratio
-* Case insensitive keys
 * Increased ratio on trigger words
 * Search function in privmsg
-* Convert to Bolt?
-	- Need helper app to populate DB
-	- requesting specific insults
-		- per number or keyword
+* requesting specific insults
+	- per number or keyword
 * PRIVMSG goroutine as func
 
 ## License
