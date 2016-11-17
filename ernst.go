@@ -19,13 +19,12 @@ import (
 	"strconv"
 )
 
-const channel = "#kakapa";
-const serverssl = "irc.inet.tele.dk:6697"
-const fname = "./skymfer.txt"
-const ircnick = "ernst7"
-const ircuname = "ErnstHugo"
-
-const rate = 10
+const channel =		"#kakapa";
+const serverssl =	"irc.inet.tele.dk:6697"
+const dbname =		"./ernst.db"
+const ircnick =		"ernst7"
+const ircuname =	"ErnstHugo"
+const rate =		10
 
 func cherr(e error) { if e != nil { log.Fatal(e) } }
 
@@ -57,6 +56,25 @@ func wrdb(db *bolt.DB, k int, v string, cbuc []byte) (err error) {
 	return
 }
 
+func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
+	rnd *rand.Rand, numln, kdel, randel int, skymf string, cbuc []byte) int {
+
+	err := wrdb(db, numln, skymf, cbuc)
+
+	if err == nil {
+		numln++
+		err := wrdb(db, 0, strconv.Itoa(numln), cbuc)
+		cherr(err)
+		resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
+		time.Sleep(time.Duration(len(resp) * kdel +
+			rnd.Intn(randel)) * time.Millisecond)
+		irccon.Privmsg(channel, resp)
+	} else {
+		cherr(err)
+	}
+	return numln
+}
+
 func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	target string, numln int, kdel, randel int) bool {
 
@@ -74,8 +92,7 @@ func main() {
 
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	cbuc := []byte("skymf")
-	dbname := "./ernst.db"
+	var cbuc = []byte("skymf")
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)
@@ -85,6 +102,7 @@ func main() {
 	randel := 700
 
 	addkey := "!skymf "
+	// setkey := "!sset "
 	statkey := "!skymfstat"
 
 	tmp, err := rdb(db, 0, cbuc)
@@ -108,19 +126,8 @@ func main() {
 			lcstr := strings.ToLower(event.Arguments[1])
 
 			if event.Arguments[0] == channel && strings.HasPrefix(lcstr, addkey) {
-
 				skymf := strings.TrimPrefix(event.Arguments[1], addkey)
-				err := wrdb(db, numln, skymf, cbuc)
-
-				if err == nil {
-					numln++
-					err := wrdb(db, 0, strconv.Itoa(numln), cbuc)
-					cherr(err)
-					resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
-					time.Sleep(time.Duration(len(resp) * kdel +
-						rnd.Intn(randel)) * time.Millisecond)
-					irccon.Privmsg(channel, resp)
-				}
+				numln = askymf(db, irccon, event, rnd, numln, kdel, randel, skymf, cbuc)
 
 			} else if event.Arguments[0] == channel &&
 				strings.HasPrefix(lcstr, statkey) {
@@ -137,13 +144,11 @@ func main() {
 
 			if event.Arguments[0] == channel && strings.Contains(lcstr, lcnick) {
 				sskymf(irccon, db, cbuc, rnd, event.Nick, numln, kdel, randel)
-				// sskymf(irccon, db, cbuc, rnd, event.Nick, numln, mindel, maxdel)
 			}
 
 			if event.Arguments[0] == ircnick {
 				target := strings.Split(event.Arguments[1], " ")
 				sskymf(irccon, db, cbuc, rnd, target[0], numln, kdel, randel)
-				// sskymf(irccon, db, cbuc, rnd, target[0], numln, mindel, maxdel)
 			}
 
 		}(event)
