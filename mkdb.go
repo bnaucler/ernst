@@ -53,9 +53,17 @@ func gline(f *os.File, scanner *bufio.Scanner, l int64) (string, int64) {
 
 func main() {
 
-	cbuc := []byte("skymf")
-	dbname := "./ernst.db"
-	sfname := "./skymfer.txt"
+	// cbuc := []byte("skymf")
+	// dbname := "./ernst.db"
+	// sfname := "./skymfer.txt"
+
+	if len(os.Args) != 4 {
+		cherr(fmt.Errorf("Usage: %s <file.txt> <file.db> <bucket>\n", os.Args[0]))
+	}
+
+	sfname := os.Args[1]
+	dbname := os.Args[2]
+	cbuc := []byte(os.Args[3])
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)
