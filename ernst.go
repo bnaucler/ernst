@@ -11,12 +11,10 @@ import (
 	"github.com/thoj/go-ircevent"
 	"github.com/boltdb/bolt"
 	"crypto/tls"
-	// "bufio"
 	"fmt"
 	"log"
 	"time"
 	"math/rand"
-	// "os"
 	"strings"
 	"strconv"
 )
@@ -103,9 +101,9 @@ func main() {
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
 
-	irccon.AddCallback("CTCP_VERSION", func(event *irc.Event) {
-		irccon.SendRawf("NOTICE %s :\x01VERSION %s\x01", event.Nick, "Skam och skuld")
-	})
+	// irccon.AddCallback("CTCP_VERSION", func(event *irc.Event) {
+	// 	irccon.SendRawf("NOTICE %s :\x01VERSION %s\x01", event.Nick, "Skam och skuld")
+	// })
 
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		go func(event *irc.Event) {
