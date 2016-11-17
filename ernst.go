@@ -58,12 +58,12 @@ func wrdb(db *bolt.DB, k int, v string, cbuc []byte) (err error) {
 }
 
 func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
-	target string, numln int, mindel, maxdel int) bool {
+	target string, numln int, kdel, randel int) bool {
 
 	ln := rnd.Intn(numln)
 	skymf, err := rdb(db, ln, cbuc)
 	cherr(err)
-	time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
+	time.Sleep(time.Duration(len(skymf) * kdel + rnd.Intn(randel)) * time.Millisecond)
 	resp := fmt.Sprintf("%v: %v", target, skymf)
 	irccon.Privmsg(channel, resp)
 
@@ -81,8 +81,8 @@ func main() {
 	cherr(err)
 	defer db.Close()
 
-	mindel := 200
-	maxdel := 5000
+	kdel := 100
+	randel := 700
 
 	addkey := "!skymf "
 	statkey := "!skymfstat"
@@ -116,8 +116,9 @@ func main() {
 					numln++
 					err := wrdb(db, 0, strconv.Itoa(numln), cbuc)
 					cherr(err)
-					time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
 					resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
+					time.Sleep(time.Duration(len(resp) * kdel +
+						rnd.Intn(randel)) * time.Millisecond)
 					irccon.Privmsg(channel, resp)
 				}
 
@@ -125,22 +126,24 @@ func main() {
 				strings.HasPrefix(lcstr, statkey) {
 
 				resp := fmt.Sprintf("Jag kan %d skymfer.", numln)
-				time.Sleep(time.Duration(rnd.Intn(maxdel) + mindel) * time.Millisecond)
+				time.Sleep(time.Duration(len(resp) * kdel +
+					rnd.Intn(randel)) * time.Millisecond)
 				irccon.Privmsg(channel, resp)
 
 			} else if event.Arguments[0] == channel && rnd.Intn(1000) < rate &&
 				event.Nick != ircnick {
-
-				sskymf(irccon, db, cbuc, rnd, event.Nick, numln, mindel, maxdel)
+				sskymf(irccon, db, cbuc, rnd, event.Nick, numln, kdel, randel)
 			}
 
 			if event.Arguments[0] == channel && strings.Contains(lcstr, lcnick) {
-				sskymf(irccon, db, cbuc, rnd, event.Nick, numln, mindel, maxdel)
+				sskymf(irccon, db, cbuc, rnd, event.Nick, numln, kdel, randel)
+				// sskymf(irccon, db, cbuc, rnd, event.Nick, numln, mindel, maxdel)
 			}
 
 			if event.Arguments[0] == ircnick {
 				target := strings.Split(event.Arguments[1], " ")
-				sskymf(irccon, db, cbuc, rnd, target[0], numln, mindel, maxdel)
+				sskymf(irccon, db, cbuc, rnd, target[0], numln, kdel, randel)
+				// sskymf(irccon, db, cbuc, rnd, target[0], numln, mindel, maxdel)
 			}
 
 		}(event)
