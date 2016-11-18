@@ -1,5 +1,4 @@
-*.swp
-.sync*
+*.db
 ernst
 mkdb
 dbdump
