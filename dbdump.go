@@ -46,15 +46,15 @@ func rdb(db *bolt.DB, k int, cbuc []byte) ([]byte, error) {
 func main() {
 
 	settings := Settings{}
-	var skey bool
+	var verb bool
 
 	if len(os.Args) < 3 || len(os.Args) > 4 {
-		cherr(fmt.Errorf("Usage: %s <file> <bucket> [k]\n", os.Args[0]))
+		cherr(fmt.Errorf("Usage: %s <file> <bucket> [v]\n", os.Args[0]))
 	}
 
 	dbname := os.Args[1]
 	cbuc := []byte(os.Args[2])
-	if len(os.Args) == 4 && os.Args[3] == "k" { skey = true }
+	if len(os.Args) == 4 && os.Args[3] == "v" { verb = true }
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)
@@ -67,9 +67,9 @@ func main() {
 	for k := 0; k <= settings.Numln; k++ {
 		v, err := rdb(db, k, cbuc)
 		cherr(err)
-		if skey { fmt.Printf("%d: %v\n", settings.Numln, string(v))
+		if verb { fmt.Printf("%d: %v\n", settings.Numln, string(v))
 		} else { fmt.Printf("%v\n", string(v)) }
 	}
 
-	fmt.Printf("Settings: %+v\n", settings)
+	if verb { fmt.Printf("Settings: %+v\n", settings) }
 }
