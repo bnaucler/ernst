@@ -89,9 +89,10 @@ func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 }
 
 func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
-	target string, settings Settings) bool {
+	target string, settings Settings, ln int) bool {
 
-	ln := rnd.Intn(settings.Numln)
+	if ln == 0 { ln = rnd.Intn(settings.Numln) }
+
 	skymf, err := rdb(db, ln, cbuc)
 	cherr(err)
 	time.Sleep(time.Duration(len(skymf) *
@@ -203,16 +204,26 @@ func main() {
 
 			} else if event.Arguments[0] == settings.Channel && rnd.Intn(1000) < settings.Rate &&
 				event.Nick != settings.Ircnick {
-				sskymf(irccon, db, cbuc, rnd, event.Nick, settings)
+				sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
 			}
 
 			if event.Arguments[0] == settings.Channel && strings.Contains(lcstr, lcnick) {
-				sskymf(irccon, db, cbuc, rnd, event.Nick, settings)
+				sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
 			}
 
 			if event.Arguments[0] == settings.Ircnick {
+				var nval int
+
 				target := strings.Split(event.Arguments[1], " ")
-				sskymf(irccon, db, cbuc, rnd, target[0], settings)
+				if len(target) > 1 {
+					nval, err = strconv.Atoi(target[1])
+					if err == nil && nval > 0 && nval <= settings.Numln {
+						sskymf(irccon, db, cbuc, rnd, target[0], settings, nval)
+					}
+
+				} else {
+					sskymf(irccon, db, cbuc, rnd, target[0], settings, 0)
+				}
 			}
 
 		}(event)
