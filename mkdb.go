@@ -131,6 +131,7 @@ func main() {
 	}
 
 	settings.Ircnick = rtext("Bot nick")
+	settings.Uname = rtext("Realname")
 	settings.Channel = rtext("Channel")
 	settings.Server = rtext("server:port (SSL only!)")
 	settings.Rate = rval("Rate (0-1000)", 0, 1000)
