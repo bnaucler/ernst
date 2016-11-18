@@ -22,6 +22,10 @@ import (
 
 const dbname =		"./ernst.db"
 
+const ratemax = int(1000)
+const kdelmax = int(1000)
+const randelmax = int(10000)
+
 type Settings struct {
 	Numln		int
 	Rate		int
@@ -103,29 +107,48 @@ func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 
 	ssp := strings.Split(event.Arguments[1], " ")
 
-	var setvar string
-	var setval string
+	var (setvar, setval, resp string)
 
-	if len(ssp) > 1 { setvar = ssp[1] }
+	if len(ssp) > 1 { setvar = strings.ToLower(ssp[1]) }
 	if len(ssp) > 2 { setval = ssp[2] }
 
-	if setvar == "rate" {
-		if len(setval) == 0 {
-			resp := fmt.Sprintf("%v: %d", setvar, settings.Rate)
+	if len(setval) == 0 {
+		if setvar == "rate" {
+			resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Rate, ratemax)
+		} else if setvar == "kdel" {
+			resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Kdel, kdelmax)
+		} else if setvar == "randel" {
+			resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Randel, randelmax)
+		}
+		if len(resp) != 0 { irccon.Privmsg(settings.Channel, resp) }
+
+	} else {
+
+		nval, nerr := strconv.Atoi(setval)
+
+		if setvar == "rate"  && nerr == nil && nval > -1 && nval <= ratemax {
+			settings.Rate = nval
+			resp = fmt.Sprintf("Nu %d/%d.", settings.Rate, ratemax)
+
+		} else if setvar == "kdel" && nerr == nil && nval > -1 && nval <= kdelmax {
+			settings.Kdel = nval
+			resp = fmt.Sprintf("Nu %d/%d.", settings.Kdel, kdelmax)
+
+		} else if setvar == "randel" && nerr == nil && nval > -1 && nval <= randelmax {
+			settings.Randel = nval
+			resp = fmt.Sprintf("Nu %d/%d.", settings.Randel, randelmax)
+
+		}
+
+		if len(resp) != 0 {
+			s, err:= json.Marshal(settings)
+			cherr(err)
+			err = wrdb(db, 0, string(s), cbuc)
+			cherr(err)
 			irccon.Privmsg(settings.Channel, resp)
-		} else {
-			nrate, err := strconv.Atoi(setval)
-			if err == nil && nrate > -1 && nrate < 1001 {
-				settings.Rate = nrate
-				s, err:= json.Marshal(settings)
-				cherr(err)
-				err = wrdb(db, 0, string(s), cbuc)
-				cherr(err)
-				resp := fmt.Sprintf("Nu %d/1000.", settings.Rate)
-				irccon.Privmsg(settings.Channel, resp)
-			}
 		}
 	}
+
 	return true
 }
 
