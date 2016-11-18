@@ -16,14 +16,14 @@ Number of insults are reported with !skymfstat(s).
 
 Options are configured with !sset in the channel. For more configuration, poke around in ernst.go. You can use skymfer.txt instead of your own list if you want to be insulted in Swedish.
 
-To create a text file with insults from a database:
-1. `go build dbdump.go`
+To create a text file with insults from a database:  
+1. `go build dbdump.go`  
 2. `./dbdump ernst.db skymf > insults.txt`
 
 ## Thanks to
-\#ljusdal @ EFNet
-Thomas Jager
-The BoltDB team
+\#ljusdal @ EFNet  
+Thomas Jager  
+The BoltDB team  
 
 ## TODO
 * default settings in mkdb
