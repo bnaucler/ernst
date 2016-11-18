@@ -20,16 +20,14 @@ type Settings struct {
 	Rate		int
 	Ircnick		string
 	Uname		string
-	// channel		[]string
-	// server		[]string
+	Channel		string
+	Server		string
 	// tword		[]string
-	// randel		int
-	// kdel			int
+	Kdel		int
+	Randel		int
 }
 
-func cherr(e error) {
-	if e != nil { panic(e) }
-}
+func cherr(e error) { if e != nil { panic(e) } }
 
 func rdb(db *bolt.DB, k int, cbuc []byte) ([]byte, error) {
 
@@ -50,7 +48,7 @@ func main() {
 	settings := Settings{}
 	var skey bool
 
-	if len(os.Args) < 3 && len(os.Args) > 4 {
+	if len(os.Args) < 3 || len(os.Args) > 4 {
 		cherr(fmt.Errorf("Usage: %s <file> <bucket> [k]\n", os.Args[0]))
 	}
 
