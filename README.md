@@ -26,14 +26,14 @@ Thomas Jager
 The BoltDB team  
 
 ## TODO
-* default settings in mkdb
+* Default settings in mkdb
 * Multiple channels
 * Multiple servers
 * Increased ratio on trigger words
 * Increased ratio with time
 * Search function in privmsg
-* Requesting specific insults
-	- per number or keyword
+* Requesting specific insults per keyword
+	- DB search function
 * PRIVMSG goroutine as func
 
 ## License
