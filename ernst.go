@@ -98,6 +98,37 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	return true
 }
 
+func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
+	event *irc.Event, settings *Settings) bool {
+
+	ssp := strings.Split(event.Arguments[1], " ")
+
+	var setvar string
+	var setval string
+
+	if len(ssp) > 1 { setvar = ssp[1] }
+	if len(ssp) > 2 { setval = ssp[2] }
+
+	if setvar == "rate" {
+		if len(setval) == 0 {
+			resp := fmt.Sprintf("%v: %d", setvar, settings.Rate)
+			irccon.Privmsg(settings.Channel, resp)
+		} else {
+			nrate, err := strconv.Atoi(setval)
+			if err == nil && nrate > -1 && nrate < 1001 {
+				settings.Rate = nrate
+				s, err:= json.Marshal(settings)
+				cherr(err)
+				err = wrdb(db, 0, string(s), cbuc)
+				cherr(err)
+				resp := fmt.Sprintf("Nu %d/1000.", settings.Rate)
+				irccon.Privmsg(settings.Channel, resp)
+			}
+		}
+	}
+	return true
+}
+
 func main() {
 
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -145,32 +176,7 @@ func main() {
 
 			} else if event.Arguments[0] == settings.Channel &&
 				strings.HasPrefix(lcstr, setkey) {
-
-					ssp := strings.Split(event.Arguments[1], " ")
-
-					var setvar string
-					var setval string
-
-					if len(ssp) > 1 { setvar = ssp[1] }
-					if len(ssp) > 2 { setval = ssp[2] }
-
-					if setvar == "rate" {
-						if len(setval) == 0 {
-							resp := fmt.Sprintf("%v: %d", setvar, settings.Rate)
-							irccon.Privmsg(settings.Channel, resp)
-						} else {
-							nrate, err := strconv.Atoi(setval)
-							if err == nil && nrate > -1 && nrate < 1001 {
-								settings.Rate = nrate
-								s, err:= json.Marshal(settings)
-								cherr(err)
-								err = wrdb(db, 0, string(s), cbuc)
-								cherr(err)
-								resp := fmt.Sprintf("Nu %d/1000.", settings.Rate)
-								irccon.Privmsg(settings.Channel, resp)
-							}
-						}
-					}
+				cset(irccon, db, cbuc, rnd, event, &settings)
 
 			} else if event.Arguments[0] == settings.Channel && rnd.Intn(1000) < settings.Rate &&
 				event.Nick != settings.Ircnick {
