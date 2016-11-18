@@ -1,20 +1,36 @@
-# ernst v0.1A
-A very unfriendly (Swedish-speaking) IRC bot.
+# ernst v0.2A
+A very unfriendly IRC bot.
 
 ## Written by
 B Naucler (mail@bnaucler.se)
 
 ## Usage
-Channel, nickname, server etc is hardcoded in the .go file. Edit and run. That's it. You only need ernst.go and ernst.db to run. Additional files are helper programs for dumping and creating databases.
+1. Add your favorite insults, one per line to <insults.txt> (UTF8 encoding)
+2. go build mkdb.go
+3. ./mkdb <insults.txt> <ernst.db> skymf
+4. go run ernst.go
+
+Insults are added with !skymf <insult> in the channel.
+
+Number of insults are reported with !skymfstat(s).
+
+Options are configured with !sset in the channel. For more configuration, poke around in ernst.go. You can use skymfer.txt instead of your own list if you want to be insulted in Swedish.
+
+To (in reverse) create a text file with insults from a database:
+1. go build dbdump.go
+2. ./dbdump ernst.db skymf > <insults.txt>
 
 ## Thanks to
-Thomas Jager (for go-ircevent)
+Thomas Jager (for go-ircevent)  
+The BoltDB team  
+\#ljusdal @ EFNet
 
 ## TODO
+* default settings in mkdb
 * Multiple channels
 * Multiple servers
-* Adjustable ratio
 * Increased ratio on trigger words
+* Increased ratio with time
 * Search function in privmsg
 * Requesting specific insults
 	- per number or keyword
