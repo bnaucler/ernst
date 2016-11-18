@@ -1,7 +1,7 @@
 /* 
 
 		dbdump.go
-		Dumps a BoltDB on the screen. That's all
+		Dumps the databse on the screen. That's all.
 
 */
 
@@ -10,56 +10,68 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"encoding/json"
 	"github.com/boltdb/bolt"
 )
+
+type Settings struct {
+	Numln		int
+	Rate		int
+	Ircnick		string
+	Uname		string
+	// channel		[]string
+	// server		[]string
+	// tword		[]string
+	// randel		int
+	// kdel			int
+}
 
 func cherr(e error) {
 	if e != nil { panic(e) }
 }
 
-func dbdump (db *bolt.DB, cbuc []byte) {
+func rdb(db *bolt.DB, k int, cbuc []byte) ([]byte, error) {
 
-	db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(cbuc)
-		c := b.Cursor()
+	var v []byte
 
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			fmt.Printf("%s=%+v\n", k, string(v))
-		}
-		return nil
-	})
-}
-
-func rdb(db *bolt.DB, k, cbuc []byte) (v []byte, err error) {
-
-	err = db.View(func(tx *bolt.Tx) error {
+	err := db.View(func(tx *bolt.Tx) error {
 		buc := tx.Bucket(cbuc)
 		if buc == nil { return fmt.Errorf("No bucket!") }
 
-		v = buc.Get(k)
+		v = buc.Get([]byte(strconv.Itoa(k)))
 		return nil
 	})
-	return
+	return v, err
 }
 
 func main() {
 
+	settings := Settings{}
+	var skey bool
 
-	if len(os.Args) != 3 {
-		cherr(fmt.Errorf("Usage: %s <file> <bucket>\n", os.Args[0]))
+	if len(os.Args) < 3 && len(os.Args) > 4 {
+		cherr(fmt.Errorf("Usage: %s <file> <bucket> [k]\n", os.Args[0]))
 	}
 
 	dbname := os.Args[1]
 	cbuc := []byte(os.Args[2])
+	if len(os.Args) == 4 && os.Args[3] == "k" { skey = true }
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)
 	defer db.Close()
 
-	dbdump(db, cbuc)
-	// for a := 1; a < 1063; a++ {
-	// 	v, err := rdb(db, []byte(strconv.Itoa(a)), cbuc)
-	// 	cherr(err)
-	// 	fmt.Printf("%d: %v\n", a, string(v))
-	// }
+	tmp, err := rdb(db, 0, cbuc)
+	cherr(err)
+	json.Unmarshal(tmp, &settings)
+
+	for k := 0; k <= settings.Numln; k++ {
+		v, err := rdb(db, k, cbuc)
+		cherr(err)
+		if skey { fmt.Printf("%d: %v\n", settings.Numln, string(v))
+		} else { fmt.Printf("%v\n", string(v)) }
+	}
+
+	fmt.Printf("Settings: %+v\n", settings)
 }
