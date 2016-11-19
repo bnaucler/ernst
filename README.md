@@ -26,12 +26,13 @@ Thomas Jager
 The BoltDB team  
 
 ## TODO
+* Support for channel keys
 * Default settings in mkdb
+* Convert settings to map
 * Multiple channels
 * Multiple servers
 * Increased ratio on trigger words
 * Increased ratio with time
-* Search function in privmsg
 * Requesting specific insults per keyword
 	- DB search function
 * PRIVMSG goroutine as func

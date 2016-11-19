@@ -20,7 +20,7 @@ import (
 	"strconv"
 )
 
-const dbname =		"./ernst.db"
+const dbname = "./ernst.db"
 
 const ratemax = int(1000)
 const kdelmax = int(1000)
@@ -110,10 +110,17 @@ func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 
 	var (setvar, setval, resp string)
 
+	if len(ssp) == 1 {
+		resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d",
+			event.Nick, settings.Rate, ratemax,
+			settings.Kdel, kdelmax, settings.Randel, randelmax)
+		irccon.Privmsg(settings.Channel, resp)
+	}
+
 	if len(ssp) > 1 { setvar = strings.ToLower(ssp[1]) }
 	if len(ssp) > 2 { setval = ssp[2] }
 
-	if len(setval) == 0 {
+	if len(setvar) > 0 && len(setval) == 0 {
 		if setvar == "rate" {
 			resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Rate, ratemax)
 		} else if setvar == "kdel" {
@@ -123,21 +130,21 @@ func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 		}
 		if len(resp) != 0 { irccon.Privmsg(settings.Channel, resp) }
 
-	} else {
+	} else if len(setvar) > 0 && len(setval) > 0 {
 
 		nval, nerr := strconv.Atoi(setval)
 
 		if setvar == "rate"  && nerr == nil && nval > -1 && nval <= ratemax {
 			settings.Rate = nval
-			resp = fmt.Sprintf("Nu %d/%d.", settings.Rate, ratemax)
+			resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Rate, ratemax)
 
 		} else if setvar == "kdel" && nerr == nil && nval > -1 && nval <= kdelmax {
 			settings.Kdel = nval
-			resp = fmt.Sprintf("Nu %d/%d.", settings.Kdel, kdelmax)
+			resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Kdel, kdelmax)
 
 		} else if setvar == "randel" && nerr == nil && nval > -1 && nval <= randelmax {
 			settings.Randel = nval
-			resp = fmt.Sprintf("Nu %d/%d.", settings.Randel, randelmax)
+			resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Randel, randelmax)
 
 		}
 
@@ -165,7 +172,7 @@ func main() {
 	defer db.Close()
 
 	addkey := "!skymf "
-	setkey := "!sset "
+	setkey := "!sset"
 	statkey := "!skymfstat"
 
 	tmp, err := rdb(db, 0, cbuc)
