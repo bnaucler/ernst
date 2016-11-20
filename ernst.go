@@ -29,20 +29,6 @@ const randelmax = int(10000)
 
 func cherr(e error) { if e != nil { log.Fatal(e) } }
 
-// func wrdb(db *bolt.DB, k int, v string, cbuc []byte) (err error) {
-
-// 	err = db.Update(func(tx *bolt.Tx) error {
-// 		buc, err := tx.CreateBucketIfNotExists(cbuc)
-// 		if err != nil { return err }
-
-// 		err = buc.Put([]byte(strconv.Itoa(k)), []byte(v))
-// 		if err != nil { return err }
-
-// 		return nil
-// 	})
-// 	return
-// }
-
 func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 	rnd *rand.Rand, settings elib.Settings, skymf string, cbuc []byte) int {
 
@@ -161,6 +147,8 @@ func main() {
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	var cbuc = []byte("skymf")
+	var incrt = int(0)
+
 	settings := elib.Settings{}
 
 	db, err := bolt.Open(dbname, 0640, nil)
@@ -205,13 +193,15 @@ func main() {
 				strings.HasPrefix(lcstr, setkey) {
 				cset(irccon, db, cbuc, rnd, event, &settings)
 
-			} else if event.Arguments[0] == settings.Channel && rnd.Intn(1000) < settings.Rate &&
-				event.Nick != settings.Ircnick {
+			} else if event.Arguments[0] == settings.Channel &&
+				rnd.Intn(ratemax) < settings.Rate + incrt && event.Nick != settings.Ircnick {
 				sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
+				incrt = 0
 			}
 
 			if event.Arguments[0] == settings.Channel && strings.Contains(lcstr, lcnick) {
 				sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
+				incrt = 0
 			}
 
 			if event.Arguments[0] == settings.Ircnick {
@@ -222,13 +212,16 @@ func main() {
 					nval, err = strconv.Atoi(target[1])
 					if err == nil && nval > 0 && nval <= settings.Numln {
 						sskymf(irccon, db, cbuc, rnd, target[0], settings, nval)
+						incrt = 0
 					}
 
 				} else {
 					sskymf(irccon, db, cbuc, rnd, target[0], settings, 0)
+					incrt = 0
 				}
 			}
 
+			incrt++
 		}(event)
 	});
 

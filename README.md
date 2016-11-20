@@ -34,12 +34,10 @@ The BoltDB team
 
 ## TODO
 * Support for channel keys
-* Avoid unnecessary type casting
 * Convert settings to map
 * Multiple channels
 * Multiple servers
 * Increased ratio on trigger words
-* Increased ratio with time
 * Requesting specific insults per keyword
 	- DB search function
 * PRIVMSG goroutine as func
