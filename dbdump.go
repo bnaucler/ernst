@@ -10,42 +10,16 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"encoding/json"
 	"github.com/boltdb/bolt"
+	elib "github.com/bnaucler/ernst/elib"
 )
-
-type Settings struct {
-	Numln		int
-	Rate		int
-	Ircnick		string
-	Uname		string
-	Channel		string
-	Server		string
-	// tword		[]string
-	Kdel		int
-	Randel		int
-}
 
 func cherr(e error) { if e != nil { panic(e) } }
 
-func rdb(db *bolt.DB, k int, cbuc []byte) ([]byte, error) {
-
-	var v []byte
-
-	err := db.View(func(tx *bolt.Tx) error {
-		buc := tx.Bucket(cbuc)
-		if buc == nil { return fmt.Errorf("No bucket!") }
-
-		v = buc.Get([]byte(strconv.Itoa(k)))
-		return nil
-	})
-	return v, err
-}
-
 func main() {
 
-	settings := Settings{}
+	settings := elib.Settings{}
 	var verb bool
 
 	if len(os.Args) < 3 || len(os.Args) > 4 {
@@ -60,12 +34,12 @@ func main() {
 	cherr(err)
 	defer db.Close()
 
-	tmp, err := rdb(db, 0, cbuc)
+	tmp, err := elib.Rdb(db, 0, cbuc)
 	cherr(err)
 	json.Unmarshal(tmp, &settings)
 
 	for k := 0; k <= settings.Numln; k++ {
-		v, err := rdb(db, k, cbuc)
+		v, err := elib.Rdb(db, k, cbuc)
 		cherr(err)
 		if verb { fmt.Printf("%d: %v\n", settings.Numln, string(v))
 		} else { fmt.Printf("%v\n", string(v)) }

@@ -15,19 +15,8 @@ import (
 	"strconv"
 	"encoding/json"
 	"github.com/boltdb/bolt"
+	elib "github.com/bnaucler/ernst/elib"
 )
-
-type Settings struct {
-	Numln		int
-	Rate		int
-	Ircnick		string
-	Uname		string
-	Channel		string
-	Server		string
-	// tword		[]string
-	Kdel		int
-	Randel		int
-}
 
 func cherr(e error) { if e != nil { panic(e) } }
 
@@ -35,20 +24,6 @@ func clines(f *os.File) (lines int) {
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() { lines++ }
-	return
-}
-
-func wrdb(db *bolt.DB, k, v, cbuc []byte) (err error) {
-
-	err = db.Update(func(tx *bolt.Tx) error {
-		buc, err := tx.CreateBucketIfNotExists(cbuc)
-		if err != nil { return err }
-
-		err = buc.Put(k, v)
-		if err != nil { return err }
-
-		return nil
-	})
 	return
 }
 
@@ -102,7 +77,7 @@ func rtext (prompt string) (resp string) {
 func main() {
 
 	var verb bool
-	settings := Settings{}
+	settings := elib.Settings{}
 
 	if len(os.Args) < 4 || len(os.Args) > 5 {
 		cherr(fmt.Errorf("Usage: %s <file.txt> <file.db> <bucket> [v]\n", os.Args[0]))
@@ -130,7 +105,7 @@ func main() {
 
 	for k := 0; k < settings.Numln; k++ {
 		v, pos = gline(f, scanner, pos)
-		err = wrdb(db, []byte(strconv.Itoa(k+1)), []byte(v), cbuc)
+		err = elib.Wrdb(db, []byte(strconv.Itoa(k+1)), []byte(v), cbuc)
 		if verb { fmt.Printf("%d(%d): %v\n", k + 1, pos, v) }
 		cherr(err)
 	}
@@ -145,6 +120,6 @@ func main() {
 
 	s, err:= json.Marshal(settings)
 	cherr(err)
-	err = wrdb(db, []byte("0"), s, cbuc)
+	err = elib.Wrdb(db, []byte("0"), s, cbuc)
 	cherr(err)
 }
