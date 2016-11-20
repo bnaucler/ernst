@@ -34,7 +34,7 @@ The BoltDB team
 
 ## TODO
 * Support for channel keys
-* Default settings in mkdb
+* Avoid unnecessary type casting
 * Convert settings to map
 * Multiple channels
 * Multiple servers

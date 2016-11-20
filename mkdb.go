@@ -65,11 +65,16 @@ func gline(f *os.File, scanner *bufio.Scanner, l int64) (string, int64) {
 	return scanner.Text(), pos
 }
 
-func rval(prompt string, minval, maxval int) (chint int) {
+func rval(prompt string, minval, maxval, def int) int {
 
 	var tmp string
-	fmt.Printf("%v: ", prompt)
+	var chint int
+
+	fmt.Printf("%v [%d]: ", prompt, def)
 	fmt.Scanln(&tmp)
+
+	if len(tmp) == 0 { return def }
+
 	for a := 0; a < len(tmp); a++ {
 		r := rune(tmp[a])
 		if !unicode.IsDigit(r) {
@@ -84,7 +89,7 @@ func rval(prompt string, minval, maxval int) (chint int) {
 	}
 
 	cherr(err)
-	return
+	return chint
 }
 
 func rtext (prompt string) (resp string) {
@@ -134,9 +139,9 @@ func main() {
 	settings.Uname = rtext("Realname")
 	settings.Channel = rtext("Channel")
 	settings.Server = rtext("server:port (SSL only!)")
-	settings.Rate = rval("Rate (0-1000)", 0, 1000)
-	settings.Kdel = rval("Keystroke delay in ms. (0-1000)", 0, 1000)
-	settings.Randel = rval("Random delay in ms. (0-10000)", 0, 10000)
+	settings.Rate = rval("Rate (0-1000)", 0, 1000, 10)
+	settings.Kdel = rval("Keystroke delay in ms. (0-1000)", 0, 1000, 100)
+	settings.Randel = rval("Random delay in ms. (0-10000)", 0, 10000, 700)
 
 	s, err:= json.Marshal(settings)
 	cherr(err)
