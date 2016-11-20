@@ -103,58 +103,79 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	return true
 }
 
+func csetlist(event *irc.Event, settings *Settings) (resp string) {
+
+	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d",
+		event.Nick, settings.Rate, ratemax,
+		settings.Kdel, kdelmax, settings.Randel, randelmax)
+
+	return
+}
+
+func csetshow(event *irc.Event, settings *Settings, setvar string) (resp string) {
+
+	if setvar == "rate" {
+		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Rate, ratemax)
+	} else if setvar == "kdel" {
+		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Kdel, kdelmax)
+	} else if setvar == "randel" {
+		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Randel, randelmax)
+	}
+
+	return
+}
+
+func csetset(event *irc.Event, settings *Settings, setvar,
+	setval string) (resp string, dbchange bool) {
+
+	nval, nerr := strconv.Atoi(setval)
+
+	if setvar == "rate"  && nerr == nil && nval > -1 && nval <= ratemax {
+		if settings.Rate != nval { dbchange = true }
+		settings.Rate = nval
+		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Rate, ratemax)
+
+	} else if setvar == "kdel" && nerr == nil && nval > -1 && nval <= kdelmax {
+		if settings.Kdel != nval { dbchange = true }
+		settings.Kdel = nval
+		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Kdel, kdelmax)
+
+	} else if setvar == "randel" && nerr == nil && nval > -1 && nval <= randelmax {
+		if settings.Randel != nval { dbchange = true }
+		settings.Randel = nval
+		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Randel, randelmax)
+	}
+
+	return
+}
+
 func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	event *irc.Event, settings *Settings) bool {
 
 	ssp := strings.Split(event.Arguments[1], " ")
 
-	var (setvar, setval, resp string)
-
-	if len(ssp) == 1 {
-		resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d",
-			event.Nick, settings.Rate, ratemax,
-			settings.Kdel, kdelmax, settings.Randel, randelmax)
-		irccon.Privmsg(settings.Channel, resp)
-	}
+	var (
+		setvar, setval, resp string
+		dbchange bool
+	)
 
 	if len(ssp) > 1 { setvar = strings.ToLower(ssp[1]) }
 	if len(ssp) > 2 { setval = ssp[2] }
 
-	if len(setvar) > 0 && len(setval) == 0 {
-		if setvar == "rate" {
-			resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Rate, ratemax)
-		} else if setvar == "kdel" {
-			resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Kdel, kdelmax)
-		} else if setvar == "randel" {
-			resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Randel, randelmax)
-		}
-		if len(resp) != 0 { irccon.Privmsg(settings.Channel, resp) }
+	if len(ssp) == 1 { resp = csetlist(event, settings)
+	} else if len(ssp) == 2 { resp = csetshow(event, settings, setvar)
+	} else if len(ssp) == 3 {
+		resp, dbchange = csetset (event, settings, setvar, setval)
+	}
 
-	} else if len(setvar) > 0 && len(setval) > 0 {
-
-		nval, nerr := strconv.Atoi(setval)
-
-		if setvar == "rate"  && nerr == nil && nval > -1 && nval <= ratemax {
-			settings.Rate = nval
-			resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Rate, ratemax)
-
-		} else if setvar == "kdel" && nerr == nil && nval > -1 && nval <= kdelmax {
-			settings.Kdel = nval
-			resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Kdel, kdelmax)
-
-		} else if setvar == "randel" && nerr == nil && nval > -1 && nval <= randelmax {
-			settings.Randel = nval
-			resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Randel, randelmax)
-
-		}
-
-		if len(resp) != 0 {
+	if len(resp) != 0 {
+		if dbchange {
 			s, err:= json.Marshal(settings)
 			cherr(err)
 			err = wrdb(db, 0, string(s), cbuc)
 			cherr(err)
-			irccon.Privmsg(settings.Channel, resp)
 		}
+		irccon.Privmsg(settings.Channel, resp)
 	}
 
 	return true
