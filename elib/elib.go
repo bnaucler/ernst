@@ -17,20 +17,6 @@ type Settings struct {
 	Randel		int
 }
 
-// func Wrdb(db *bolt.DB, k, v, cbuc []byte) (err error) {
-
-// 	err = db.Update(func(tx *bolt.Tx) error {
-// 		buc, err := tx.CreateBucketIfNotExists(cbuc)
-// 		if err != nil { return err }
-
-// 		err = buc.Put(k, v)
-// 		if err != nil { return err }
-
-// 		return nil
-// 	})
-// 	return
-// }
-
 func Wrdb(db *bolt.DB, k int, v, cbuc []byte) (err error) {
 
 	err = db.Update(func(tx *bolt.Tx) error {
