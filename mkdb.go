@@ -105,7 +105,7 @@ func main() {
 
 	for k := 0; k < settings.Numln; k++ {
 		v, pos = gline(f, scanner, pos)
-		err = elib.Wrdb(db, []byte(strconv.Itoa(k+1)), []byte(v), cbuc)
+		err = elib.Wrdb(db, (k+1), []byte(v), cbuc)
 		if verb { fmt.Printf("%d(%d): %v\n", k + 1, pos, v) }
 		cherr(err)
 	}
@@ -120,6 +120,6 @@ func main() {
 
 	s, err:= json.Marshal(settings)
 	cherr(err)
-	err = elib.Wrdb(db, []byte("0"), s, cbuc)
+	err = elib.Wrdb(db, 0, s, cbuc)
 	cherr(err)
 }

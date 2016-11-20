@@ -18,6 +18,7 @@ import (
 	"math/rand"
 	"strings"
 	"strconv"
+	elib "github.com/bnaucler/ernst/elib"
 )
 
 const dbname = "./ernst.db"
@@ -26,57 +27,31 @@ const ratemax = int(1000)
 const kdelmax = int(1000)
 const randelmax = int(10000)
 
-type Settings struct {
-	Numln		int
-	Rate		int
-	Ircnick		string
-	Uname		string
-	Channel		string
-	Server		string
-	// Tword		[]string
-	Kdel		int
-	Randel		int
-}
-
 func cherr(e error) { if e != nil { log.Fatal(e) } }
 
-func rdb(db *bolt.DB, k int, cbuc []byte) ([]byte, error) {
+// func wrdb(db *bolt.DB, k int, v string, cbuc []byte) (err error) {
 
-	var v []byte
+// 	err = db.Update(func(tx *bolt.Tx) error {
+// 		buc, err := tx.CreateBucketIfNotExists(cbuc)
+// 		if err != nil { return err }
 
-	err := db.View(func(tx *bolt.Tx) error {
-		buc := tx.Bucket(cbuc)
-		if buc == nil { return fmt.Errorf("No bucket!") }
+// 		err = buc.Put([]byte(strconv.Itoa(k)), []byte(v))
+// 		if err != nil { return err }
 
-		v = buc.Get([]byte(strconv.Itoa(k)))
-		return nil
-	})
-	return v, err
-}
-
-func wrdb(db *bolt.DB, k int, v string, cbuc []byte) (err error) {
-
-	err = db.Update(func(tx *bolt.Tx) error {
-		buc, err := tx.CreateBucketIfNotExists(cbuc)
-		if err != nil { return err }
-
-		err = buc.Put([]byte(strconv.Itoa(k)), []byte(v))
-		if err != nil { return err }
-
-		return nil
-	})
-	return
-}
+// 		return nil
+// 	})
+// 	return
+// }
 
 func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
-	rnd *rand.Rand, settings Settings, skymf string, cbuc []byte) int {
+	rnd *rand.Rand, settings elib.Settings, skymf string, cbuc []byte) int {
 
 	settings.Numln++
 	senc, _ := json.Marshal(settings)
-	err := wrdb(db, settings.Numln, skymf, cbuc)
+	err := elib.Wrdb(db, settings.Numln, []byte(skymf), cbuc)
 
 	if err == nil {
-		err := wrdb(db, 0, string(senc), cbuc)
+		err := elib.Wrdb(db, 0, senc, cbuc)
 		cherr(err)
 		resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
 		time.Sleep(time.Duration(len(resp) * settings.Kdel +
@@ -89,11 +64,11 @@ func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 }
 
 func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
-	target string, settings Settings, ln int) bool {
+	target string, settings elib.Settings, ln int) bool {
 
 	if ln == 0 { ln = rnd.Intn(settings.Numln) }
 
-	skymf, err := rdb(db, ln, cbuc)
+	skymf, err := elib.Rdb(db, ln, cbuc)
 	cherr(err)
 	time.Sleep(time.Duration(len(skymf) *
 		settings.Kdel + rnd.Intn(settings.Randel)) * time.Millisecond)
@@ -103,7 +78,7 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	return true
 }
 
-func csetlist(event *irc.Event, settings *Settings) (resp string) {
+func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
 
 	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d",
 		event.Nick, settings.Rate, ratemax,
@@ -112,7 +87,7 @@ func csetlist(event *irc.Event, settings *Settings) (resp string) {
 	return
 }
 
-func csetshow(event *irc.Event, settings *Settings, setvar string) (resp string) {
+func csetshow(event *irc.Event, settings *elib.Settings, setvar string) (resp string) {
 
 	if setvar == "rate" {
 		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Rate, ratemax)
@@ -125,7 +100,7 @@ func csetshow(event *irc.Event, settings *Settings, setvar string) (resp string)
 	return
 }
 
-func csetset(event *irc.Event, settings *Settings, setvar,
+func csetset(event *irc.Event, settings *elib.Settings, setvar,
 	setval string) (resp string, dbchange bool) {
 
 	nval, nerr := strconv.Atoi(setval)
@@ -150,7 +125,7 @@ func csetset(event *irc.Event, settings *Settings, setvar,
 }
 
 func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
-	event *irc.Event, settings *Settings) bool {
+	event *irc.Event, settings *elib.Settings) bool {
 
 	ssp := strings.Split(event.Arguments[1], " ")
 
@@ -172,7 +147,7 @@ func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 		if dbchange {
 			s, err:= json.Marshal(settings)
 			cherr(err)
-			err = wrdb(db, 0, string(s), cbuc)
+			err = elib.Wrdb(db, 0, s, cbuc)
 			cherr(err)
 		}
 		irccon.Privmsg(settings.Channel, resp)
@@ -186,7 +161,7 @@ func main() {
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	var cbuc = []byte("skymf")
-	settings := Settings{}
+	settings := elib.Settings{}
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)
@@ -196,7 +171,7 @@ func main() {
 	setkey := "!sset"
 	statkey := "!skymfstat"
 
-	tmp, err := rdb(db, 0, cbuc)
+	tmp, err := elib.Rdb(db, 0, cbuc)
 	cherr(err)
 	json.Unmarshal(tmp, &settings)
 

@@ -33,7 +33,6 @@ Thomas Jager
 The BoltDB team  
 
 ## TODO
-* Library of shared functions
 * Support for channel keys
 * Avoid unnecessary type casting
 * Convert settings to map
