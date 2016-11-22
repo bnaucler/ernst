@@ -36,6 +36,7 @@ The BoltDB team
 * Support for channel keys
 * Convert settings to map
 * Multiple channels
+* Avoid repetition
 * Multiple servers
 * Increased ratio on trigger words
 * PRIVMSG goroutine as func
