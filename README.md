@@ -38,8 +38,6 @@ The BoltDB team
 * Multiple channels
 * Multiple servers
 * Increased ratio on trigger words
-* Requesting specific insults per keyword
-	- DB search function
 * PRIVMSG goroutine as func
 
 ## License

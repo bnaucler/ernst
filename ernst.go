@@ -64,6 +64,31 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	return true
 }
 
+func fskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
+	target string, kw []string, settings elib.Settings) bool {
+
+	kwln := len(kw)
+	var (reqnum, cqual, tqual int)
+
+	for k := 0; k <= settings.Numln; k++ {
+		v, err := elib.Rdb(db, k, cbuc)
+		cqual = 0
+		cstr := string(v)
+		for a := 1; a < kwln; a++ {
+			if strings.Contains(cstr, kw[a]) {
+				cqual++
+				if cqual > tqual {
+					tqual = cqual
+					reqnum = k
+				}
+			}
+		}
+		cherr(err)
+	}
+
+	return sskymf(irccon, db, cbuc, rnd, target, settings, reqnum)
+}
+
 func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
 
 	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d",
@@ -194,12 +219,18 @@ func main() {
 				cset(irccon, db, cbuc, rnd, event, &settings)
 
 			} else if event.Arguments[0] == settings.Channel &&
-				rnd.Intn(ratemax) < settings.Rate + incrt && event.Nick != settings.Ircnick {
-				sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
-				incrt = 0
-			}
+				strings.Contains(lcstr, lcnick) {
+				kw := strings.Split(event.Arguments[1], " ")
 
-			if event.Arguments[0] == settings.Channel && strings.Contains(lcstr, lcnick) {
+				if strings.Contains(kw[0], lcnick) {
+					fskymf(irccon, db, cbuc, rnd, event.Nick, kw, settings)
+				} else {
+					sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
+				}
+				incrt = 0
+
+			} else if event.Arguments[0] == settings.Channel &&
+				rnd.Intn(ratemax) < settings.Rate + incrt && event.Nick != settings.Ircnick {
 				sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
 				incrt = 0
 			}
