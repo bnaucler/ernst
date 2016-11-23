@@ -35,9 +35,10 @@ The BoltDB team
 ## TODO
 * Support for channel keys
 * Convert settings to map
-* Multiple channels
 * Avoid repetition
+* Multiple channels
 * Multiple servers
+* Shared delay between threads
 * Increased ratio on trigger words
 * PRIVMSG goroutine as func
 

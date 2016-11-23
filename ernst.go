@@ -65,7 +65,7 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 }
 
 func fskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
-	target string, kw []string, settings elib.Settings) bool {
+	target string, kw []string, index int, settings elib.Settings) bool {
 
 	kwln := len(kw)
 	var (reqnum, cqual, tqual int)
@@ -74,7 +74,7 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 		v, err := elib.Rdb(db, k, cbuc)
 		cqual = 0
 		cstr := string(v)
-		for a := 1; a < kwln; a++ {
+		for a := index; a < kwln; a++ {
 			if strings.Contains(cstr, strings.ToLower(kw[a])) {
 				cqual++
 				if cqual > tqual {
@@ -223,7 +223,7 @@ func main() {
 				kw := strings.Split(event.Arguments[1], " ")
 
 				if strings.Contains(kw[0], lcnick) {
-					fskymf(irccon, db, cbuc, rnd, event.Nick, kw, settings)
+					fskymf(irccon, db, cbuc, rnd, event.Nick, kw, 1, settings)
 				} else {
 					sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
 				}
@@ -241,8 +241,15 @@ func main() {
 				target := strings.Split(event.Arguments[1], " ")
 				if len(target) > 1 {
 					nval, err = strconv.Atoi(target[1])
+
+					debugresp := fmt.Sprintf("%+v, %d, %d", target, nval, len(target))
+					irccon.Privmsg(settings.Channel, debugresp)
+
 					if err == nil && nval > 0 && nval <= settings.Numln {
 						sskymf(irccon, db, cbuc, rnd, target[0], settings, nval)
+						incrt = 0
+					} else if nval == 0 {
+						fskymf(irccon, db, cbuc, rnd, target[0], target, 1, settings)
 						incrt = 0
 					}
 
