@@ -69,13 +69,16 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 
 	kwln := len(kw)
 	var (reqnum, cqual, tqual int)
+	lckw := make([]string, kwln)
+
+	for a := 0; a < kwln; a++ { lckw[a] = strings.ToLower(kw[a]) }
 
 	for k := 0; k <= settings.Numln; k++ {
 		v, err := elib.Rdb(db, k, cbuc)
 		cqual = 0
 		cstr := string(v)
 		for a := index; a < kwln; a++ {
-			if strings.Contains(cstr, strings.ToLower(kw[a])) {
+			if strings.Contains(cstr, lckw[a]) {
 				cqual++
 				if cqual > tqual {
 					tqual = cqual
@@ -241,9 +244,6 @@ func main() {
 				target := strings.Split(event.Arguments[1], " ")
 				if len(target) > 1 {
 					nval, err = strconv.Atoi(target[1])
-
-					debugresp := fmt.Sprintf("%+v, %d, %d", target, nval, len(target))
-					irccon.Privmsg(settings.Channel, debugresp)
 
 					if err == nil && nval > 0 && nval <= settings.Numln {
 						sskymf(irccon, db, cbuc, rnd, target[0], settings, nval)
