@@ -38,7 +38,7 @@ func main() {
 	cherr(err)
 	json.Unmarshal(tmp, &settings)
 
-	for k := 0; k <= settings.Numln; k++ {
+	for k := 1; k <= settings.Numln; k++ {
 		v, err := elib.Rdb(db, k, cbuc)
 		cherr(err)
 		if verb { fmt.Printf("%d: %v\n", settings.Numln, string(v))
