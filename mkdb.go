@@ -79,14 +79,13 @@ func main() {
 	var verb bool
 	settings := elib.Settings{}
 
-	if len(os.Args) < 4 || len(os.Args) > 5 {
-		cherr(fmt.Errorf("Usage: %s <file.txt> <file.db> <bucket> [v]\n", os.Args[0]))
+	if len(os.Args) < 3 || len(os.Args) > 4 {
+		cherr(fmt.Errorf("Usage: %s <file.txt> <file.db> [v]\n", os.Args[0]))
 	}
 
 	sfname := os.Args[1]
 	dbname := os.Args[2]
-	cbuc := []byte(os.Args[3])
-	if len(os.Args) == 5 && os.Args[4] == "v" { verb = true }
+	if len(os.Args) == 4 && os.Args[3] == "v" { verb = true }
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)
@@ -105,7 +104,7 @@ func main() {
 
 	for k := 0; k < settings.Numln; k++ {
 		v, pos = gline(f, scanner, pos)
-		err = elib.Wrdb(db, (k+1), []byte(v), cbuc)
+		err = elib.Wrdb(db, (k+1), []byte(v))
 		if verb { fmt.Printf("%d(%d): %v\n", k + 1, pos, v) }
 		cherr(err)
 	}
@@ -120,6 +119,6 @@ func main() {
 
 	s, err:= json.Marshal(settings)
 	cherr(err)
-	err = elib.Wrdb(db, 0, s, cbuc)
+	err = elib.Wrdb(db, 0, s)
 	cherr(err)
 }

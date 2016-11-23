@@ -30,14 +30,14 @@ const randelmax = int(10000)
 func cherr(e error) { if e != nil { log.Fatal(e) } }
 
 func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
-	rnd *rand.Rand, settings elib.Settings, skymf string, cbuc []byte) int {
+	rnd *rand.Rand, settings elib.Settings, skymf string) int {
 
 	settings.Numln++
 	senc, _ := json.Marshal(settings)
-	err := elib.Wrdb(db, settings.Numln, []byte(skymf), cbuc)
+	err := elib.Wrdb(db, settings.Numln, []byte(skymf))
 
 	if err == nil {
-		err := elib.Wrdb(db, 0, senc, cbuc)
+		err := elib.Wrdb(db, 0, senc)
 		cherr(err)
 		resp := fmt.Sprintf("%v: lade till \"%v\"", event.Nick, skymf)
 		time.Sleep(time.Duration(len(resp) * settings.Kdel +
@@ -49,12 +49,12 @@ func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 	return settings.Numln
 }
 
-func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
+func sskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	target string, settings elib.Settings, ln int) bool {
 
 	if ln == 0 { ln = rnd.Intn(settings.Numln) }
 
-	skymf, err := elib.Rdb(db, ln, cbuc)
+	skymf, err := elib.Rdb(db, ln)
 	cherr(err)
 	time.Sleep(time.Duration(len(skymf) *
 		settings.Kdel + rnd.Intn(settings.Randel)) * time.Millisecond)
@@ -64,8 +64,8 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	return true
 }
 
-func fskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
-	target string, kw []string, index int, settings elib.Settings) bool {
+func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
+	target string, kw []string, settings elib.Settings) bool {
 
 	kwln := len(kw)
 	var (reqnum, cqual, tqual int)
@@ -74,10 +74,10 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 	for a := 0; a < kwln; a++ { lckw[a] = strings.ToLower(kw[a]) }
 
 	for k := 0; k <= settings.Numln; k++ {
-		v, err := elib.Rdb(db, k, cbuc)
+		v, err := elib.Rdb(db, k)
 		cqual = 0
 		cstr := string(v)
-		for a := index; a < kwln; a++ {
+		for a := 0; a < kwln; a++ {
 			if strings.Contains(cstr, lckw[a]) {
 				cqual++
 				if cqual > tqual {
@@ -89,7 +89,7 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 		cherr(err)
 	}
 
-	return sskymf(irccon, db, cbuc, rnd, target, settings, reqnum)
+	return sskymf(irccon, db, rnd, target, settings, reqnum)
 }
 
 func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
@@ -138,7 +138,7 @@ func csetset(event *irc.Event, settings *elib.Settings, setvar,
 	return
 }
 
-func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
+func cset(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	event *irc.Event, settings *elib.Settings) bool {
 
 	ssp := strings.Split(event.Arguments[1], " ")
@@ -161,7 +161,7 @@ func cset(irccon *irc.Connection, db *bolt.DB, cbuc []byte, rnd *rand.Rand,
 		if dbchange {
 			s, err:= json.Marshal(settings)
 			cherr(err)
-			err = elib.Wrdb(db, 0, s, cbuc)
+			err = elib.Wrdb(db, 0, s)
 			cherr(err)
 		}
 		irccon.Privmsg(settings.Channel, resp)
@@ -174,7 +174,6 @@ func main() {
 
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	var cbuc = []byte("skymf")
 	var incrt = int(0)
 
 	settings := elib.Settings{}
@@ -183,11 +182,11 @@ func main() {
 	cherr(err)
 	defer db.Close()
 
-	addkey := "!skymf "
+	addkey := "!skymf"
 	setkey := "!sset"
 	statkey := "!skymfstat"
 
-	tmp, err := elib.Rdb(db, 0, cbuc)
+	tmp, err := elib.Rdb(db, 0)
 	cherr(err)
 	json.Unmarshal(tmp, &settings)
 
@@ -206,8 +205,9 @@ func main() {
 			lcstr := strings.ToLower(event.Arguments[1])
 
 			if event.Arguments[0] == settings.Channel && strings.HasPrefix(lcstr, addkey) {
-				skymf := strings.TrimPrefix(event.Arguments[1], addkey)
-				settings.Numln = askymf(db, irccon, event, rnd, settings, skymf, cbuc)
+				keytr := fmt.Sprintf("%s ", addkey)
+				skymf := strings.TrimPrefix(event.Arguments[1], keytr)
+				settings.Numln = askymf(db, irccon, event, rnd, settings, skymf)
 
 			} else if event.Arguments[0] == settings.Channel &&
 				strings.HasPrefix(lcstr, statkey) {
@@ -219,22 +219,22 @@ func main() {
 
 			} else if event.Arguments[0] == settings.Channel &&
 				strings.HasPrefix(lcstr, setkey) {
-				cset(irccon, db, cbuc, rnd, event, &settings)
+				cset(irccon, db, rnd, event, &settings)
 
 			} else if event.Arguments[0] == settings.Channel &&
 				strings.Contains(lcstr, lcnick) {
 				kw := strings.Split(event.Arguments[1], " ")
 
 				if strings.Contains(kw[0], lcnick) {
-					fskymf(irccon, db, cbuc, rnd, event.Nick, kw, 1, settings)
+					fskymf(irccon, db, rnd, event.Nick, kw[1:], settings)
 				} else {
-					sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
+					sskymf(irccon, db, rnd, event.Nick, settings, 0)
 				}
 				incrt = 0
 
 			} else if event.Arguments[0] == settings.Channel &&
 				rnd.Intn(ratemax) < settings.Rate + incrt && event.Nick != settings.Ircnick {
-				sskymf(irccon, db, cbuc, rnd, event.Nick, settings, 0)
+				sskymf(irccon, db, rnd, event.Nick, settings, 0)
 				incrt = 0
 			}
 
@@ -246,15 +246,15 @@ func main() {
 					nval, err = strconv.Atoi(target[1])
 
 					if err == nil && nval > 0 && nval <= settings.Numln {
-						sskymf(irccon, db, cbuc, rnd, target[0], settings, nval)
+						sskymf(irccon, db, rnd, target[0], settings, nval)
 						incrt = 0
 					} else if nval == 0 {
-						fskymf(irccon, db, cbuc, rnd, target[0], target, 1, settings)
+						fskymf(irccon, db, rnd, target[0], target[1:], settings)
 						incrt = 0
 					}
 
 				} else {
-					sskymf(irccon, db, cbuc, rnd, target[0], settings, 0)
+					sskymf(irccon, db, rnd, target[0], settings, 0)
 					incrt = 0
 				}
 			}

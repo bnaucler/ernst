@@ -7,7 +7,7 @@ B Naucler (mail@bnaucler.se)
 ## Setup
 1. Add your favorite insults, one per line to insults.txt (UTF8 encoding)
 2. `go build mkdb.go`
-3. `./mkdb insults.txt ernst.db skymf`
+3. `./mkdb insults.txt ernst.db`
 4. `go run ernst.go`
 
 You can use skymfer.txt instead of your own list if you want to be insulted in Swedish.

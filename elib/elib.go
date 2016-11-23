@@ -6,6 +6,8 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+var Cbuc = []byte("skymf")
+
 type Settings struct {
 	Numln		int
 	Rate		int
@@ -17,10 +19,10 @@ type Settings struct {
 	Randel		int
 }
 
-func Wrdb(db *bolt.DB, k int, v, cbuc []byte) (err error) {
+func Wrdb(db *bolt.DB, k int, v []byte) (err error) {
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		buc, err := tx.CreateBucketIfNotExists(cbuc)
+		buc, err := tx.CreateBucketIfNotExists(Cbuc)
 		if err != nil { return err }
 
 		err = buc.Put([]byte(strconv.Itoa(k)), v)
@@ -31,12 +33,12 @@ func Wrdb(db *bolt.DB, k int, v, cbuc []byte) (err error) {
 	return
 }
 
-func Rdb(db *bolt.DB, k int, cbuc []byte) ([]byte, error) {
+func Rdb(db *bolt.DB, k int) ([]byte, error) {
 
 	var v []byte
 
 	err := db.View(func(tx *bolt.Tx) error {
-		buc := tx.Bucket(cbuc)
+		buc := tx.Bucket(Cbuc)
 		if buc == nil { return fmt.Errorf("No bucket!") }
 
 		v = buc.Get([]byte(strconv.Itoa(k)))
