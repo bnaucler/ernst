@@ -22,6 +22,7 @@ import (
 )
 
 const dbname = "./ernst.db"
+const erresp = "Vad fan är det frågan om?"
 
 func cherr(e error) { if e != nil { log.Fatal(e) } }
 
@@ -107,7 +108,7 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 
 func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
 
-	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d dnrmem: %d/%d",
+	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d, dnrmem: %d/%d",
 		event.Nick, settings.Rate, elib.Ratemax,
 		settings.Kdel, elib.Kdelmax, settings.Randel, elib.Randelmax,
 		settings.Dnrmem, elib.Dnrmemmax)
@@ -129,6 +130,8 @@ func csetshow(event *irc.Event, settings *elib.Settings, setvar string) (resp st
 	} else if setvar == "dnrmem" {
 		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick,
 			setvar, settings.Dnrmem, elib.Dnrmemmax)
+	} else {
+		resp = fmt.Sprintf("%v: %v", event.Nick, erresp)
 	}
 
 	return
@@ -142,22 +145,24 @@ func csetset(event *irc.Event, settings *elib.Settings, setvar,
 	if setvar == "rate"  && nerr == nil && nval > -1 && nval <= elib.Ratemax {
 		if settings.Rate != nval { dbchange = true }
 		settings.Rate = nval
-		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Rate, elib.Ratemax)
+		resp = fmt.Sprintf("%v: %s: %d/%d", event.Nick, setvar, settings.Rate, elib.Ratemax)
 
 	} else if setvar == "kdel" && nerr == nil && nval > -1 && nval <= elib.Kdelmax {
 		if settings.Kdel != nval { dbchange = true }
 		settings.Kdel = nval
-		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Kdel, elib.Kdelmax)
+		resp = fmt.Sprintf("%v: %s: %d/%d", event.Nick, setvar, settings.Kdel, elib.Kdelmax)
 
 	} else if setvar == "randel" && nerr == nil && nval > -1 && nval <= elib.Randelmax {
 		if settings.Randel != nval { dbchange = true }
 		settings.Randel = nval
-		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Randel, elib.Randelmax)
+		resp = fmt.Sprintf("%v: %s: %d/%d", event.Nick, setvar, settings.Randel, elib.Randelmax)
 
 	} else if setvar == "dnrmem" && nerr == nil && nval > -1 && nval <= elib.Dnrmemmax {
 		if settings.Dnrmem != nval { dbchange = true }
 		settings.Dnrmem = nval
-		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Dnrmem, elib.Dnrmemmax)
+		resp = fmt.Sprintf("%v: %s: %d/%d", event.Nick, setvar, settings.Dnrmem, elib.Dnrmemmax)
+	} else {
+		resp = fmt.Sprintf("%v: %v", event.Nick, erresp)
 	}
 
 	return

@@ -22,6 +22,7 @@ Some options can be configured with !sset in the channel. For more extensive con
 * rate (0-1000) chance of random insult triggering
 * kdel (0-1000) delay per "keystroke" (in ms). Default: 100
 * randel (0-1000) random delay per line (in ms). Default: 700
+* dnrmem (0-20) number of insults to remember and avoid repetition. Default: 5
 
 ## Dump database to file
 1. `go build dbdump.go`  
