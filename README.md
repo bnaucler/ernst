@@ -17,7 +17,7 @@ Insults are added with !skymf \<insult\> in the channel.
 Number of insults are reported with !skymfstat(s).
 
 ## Configuration options
-Some options can be configured with !sset in the channel. For more extensive configuration, poke around in ernst.go.
+Some options can be configured with !sset in the channel. For more extensive configuration, poke around in ernst.go and elib.go.
 
 * rate (0-1000) chance of random insult triggering
 * kdel (0-1000) delay per "keystroke" (in ms). Default: 100
@@ -26,7 +26,7 @@ Some options can be configured with !sset in the channel. For more extensive con
 
 ## Dump database to file
 1. `go build dbdump.go`  
-2. `./dbdump ernst.db skymf > insults.txt`
+2. `./dbdump ernst.db > insults.txt`
 
 ## Thanks to
 \#ljusdal @ EFNet  
