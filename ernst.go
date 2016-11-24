@@ -51,7 +51,7 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	if ln == 0 && settings.Dnrmem > 0 {
 		inmem := true
 		for inmem {
-			ln = rnd.Intn(settings.Numln)
+			ln = rnd.Intn(settings.Numln - 1) + 1
 			inmem = false
 			for a := 0; a < settings.Dnrmem; a++ {
 				if ln == lastsk[a] {
