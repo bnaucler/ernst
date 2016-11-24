@@ -7,6 +7,10 @@ import (
 )
 
 var Cbuc = []byte("skymf")
+const Ratemax = int(1000)
+const Kdelmax = int(1000)
+const Randelmax = int(10000)
+const Dnrmemmax = int(20)
 
 type Settings struct {
 	Numln		int
@@ -17,6 +21,7 @@ type Settings struct {
 	Server		string
 	Kdel		int
 	Randel		int
+	Dnrmem		int
 }
 
 func Wrdb(db *bolt.DB, k int, v []byte) (err error) {

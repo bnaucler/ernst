@@ -27,7 +27,7 @@ func main() {
 	}
 
 	dbname := os.Args[1]
-	if len(os.Args) == 3 && os.Args[2] == "v" { verb = true }
+	if len(os.Args) == 3 && os.Args[2] == "v" { verb = true };
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)

@@ -10,7 +10,7 @@ B Naucler (mail@bnaucler.se)
 3. `./mkdb insults.txt ernst.db`
 4. `go run ernst.go`
 
-You can use skymfer.txt instead of your own list if you want to be insulted in Swedish.
+You can use `skymfer.txt` instead of your own list if you want to be insulted in Swedish.
 
 ## Usage
 Insults are added with !skymf \<insult\> in the channel.  
@@ -34,8 +34,9 @@ The BoltDB team
 
 ## TODO
 * Support for channel keys
+* Definition of triggers in settings struct
 * Convert settings to map
-* Avoid repetition
+* Avoid repetition when directly addressed
 * Multiple channels
 * Multiple servers
 * Shared delay between threads

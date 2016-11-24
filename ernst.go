@@ -23,10 +23,6 @@ import (
 
 const dbname = "./ernst.db"
 
-const ratemax = int(1000)
-const kdelmax = int(1000)
-const randelmax = int(10000)
-
 func cherr(e error) { if e != nil { log.Fatal(e) } }
 
 func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
@@ -50,22 +46,39 @@ func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 }
 
 func sskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
-	target string, settings elib.Settings, ln int) bool {
+	target string, settings elib.Settings, lastsk []int, ln int) bool {
 
-	if ln == 0 { ln = rnd.Intn(settings.Numln) }
+	if ln == 0 && settings.Dnrmem > 0 {
+		inmem := true
+		for inmem {
+			ln = rnd.Intn(settings.Numln)
+			inmem = false
+			for a := 0; a < settings.Dnrmem; a++ {
+				if ln == lastsk[a] {
+					inmem = true
+				}
+			}
+		}
+	}
 
 	skymf, err := elib.Rdb(db, ln)
 	cherr(err)
 	time.Sleep(time.Duration(len(skymf) *
 		settings.Kdel + rnd.Intn(settings.Randel)) * time.Millisecond)
+
 	resp := fmt.Sprintf("%v: %v", target, string(skymf))
 	irccon.Privmsg(settings.Channel, resp)
+
+	if settings.Dnrmem > 0 {
+		for a := settings.Dnrmem - 1; a > 0; a-- { lastsk[a] = lastsk[(a - 1)] }
+		lastsk[0] = ln
+	}
 
 	return true
 }
 
 func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
-	target string, kw []string, settings elib.Settings) bool {
+	target string, kw []string, settings elib.Settings, lastsk []int) bool {
 
 	kwln := len(kw)
 	var (reqnum, cqual, tqual int)
@@ -89,14 +102,15 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 		cherr(err)
 	}
 
-	return sskymf(irccon, db, rnd, target, settings, reqnum)
+	return sskymf(irccon, db, rnd, target, settings, lastsk, reqnum)
 }
 
 func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
 
-	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d",
-		event.Nick, settings.Rate, ratemax,
-		settings.Kdel, kdelmax, settings.Randel, randelmax)
+	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d dnrmem: %d/%d",
+		event.Nick, settings.Rate, elib.Ratemax,
+		settings.Kdel, elib.Kdelmax, settings.Randel, elib.Randelmax,
+		settings.Dnrmem, elib.Dnrmemmax)
 
 	return
 }
@@ -104,11 +118,17 @@ func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
 func csetshow(event *irc.Event, settings *elib.Settings, setvar string) (resp string) {
 
 	if setvar == "rate" {
-		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Rate, ratemax)
+		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick,
+			setvar, settings.Rate, elib.Ratemax)
 	} else if setvar == "kdel" {
-		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Kdel, kdelmax)
+		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick,
+			setvar, settings.Kdel, elib.Kdelmax)
 	} else if setvar == "randel" {
-		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick, setvar, settings.Randel, randelmax)
+		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick,
+			setvar, settings.Randel, elib.Randelmax)
+	} else if setvar == "dnrmem" {
+		resp = fmt.Sprintf("%v: %v: %d/%d", event.Nick,
+			setvar, settings.Dnrmem, elib.Dnrmemmax)
 	}
 
 	return
@@ -119,20 +139,25 @@ func csetset(event *irc.Event, settings *elib.Settings, setvar,
 
 	nval, nerr := strconv.Atoi(setval)
 
-	if setvar == "rate"  && nerr == nil && nval > -1 && nval <= ratemax {
+	if setvar == "rate"  && nerr == nil && nval > -1 && nval <= elib.Ratemax {
 		if settings.Rate != nval { dbchange = true }
 		settings.Rate = nval
-		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Rate, ratemax)
+		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Rate, elib.Ratemax)
 
-	} else if setvar == "kdel" && nerr == nil && nval > -1 && nval <= kdelmax {
+	} else if setvar == "kdel" && nerr == nil && nval > -1 && nval <= elib.Kdelmax {
 		if settings.Kdel != nval { dbchange = true }
 		settings.Kdel = nval
-		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Kdel, kdelmax)
+		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Kdel, elib.Kdelmax)
 
-	} else if setvar == "randel" && nerr == nil && nval > -1 && nval <= randelmax {
+	} else if setvar == "randel" && nerr == nil && nval > -1 && nval <= elib.Randelmax {
 		if settings.Randel != nval { dbchange = true }
 		settings.Randel = nval
-		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Randel, randelmax)
+		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Randel, elib.Randelmax)
+
+	} else if setvar == "dnrmem" && nerr == nil && nval > -1 && nval <= elib.Dnrmemmax {
+		if settings.Dnrmem != nval { dbchange = true }
+		settings.Dnrmem = nval
+		resp = fmt.Sprintf("%s %d/%d.", setvar, settings.Dnrmem, elib.Dnrmemmax)
 	}
 
 	return
@@ -190,6 +215,8 @@ func main() {
 	cherr(err)
 	json.Unmarshal(tmp, &settings)
 
+	var lastsk = make([]int, elib.Dnrmemmax)
+
 	irccon := irc.IRC(settings.Ircnick, settings.Uname)
 
 	irccon.VerboseCallbackHandler = true
@@ -205,6 +232,7 @@ func main() {
 			lcstr := strings.ToLower(event.Arguments[1])
 
 			if event.Arguments[0] == settings.Channel && strings.HasPrefix(lcstr, addkey) {
+
 				keytr := fmt.Sprintf("%s ", addkey)
 				skymf := strings.TrimPrefix(event.Arguments[1], keytr)
 				settings.Numln = askymf(db, irccon, event, rnd, settings, skymf)
@@ -219,22 +247,26 @@ func main() {
 
 			} else if event.Arguments[0] == settings.Channel &&
 				strings.HasPrefix(lcstr, setkey) {
+
 				cset(irccon, db, rnd, event, &settings)
 
 			} else if event.Arguments[0] == settings.Channel &&
 				strings.Contains(lcstr, lcnick) {
+
 				kw := strings.Split(event.Arguments[1], " ")
 
 				if strings.Contains(kw[0], lcnick) {
-					fskymf(irccon, db, rnd, event.Nick, kw[1:], settings)
+					fskymf(irccon, db, rnd, event.Nick, kw[1:], settings, lastsk)
 				} else {
-					sskymf(irccon, db, rnd, event.Nick, settings, 0)
+					sskymf(irccon, db, rnd, event.Nick, settings, lastsk, 0)
 				}
 				incrt = 0
 
 			} else if event.Arguments[0] == settings.Channel &&
-				rnd.Intn(ratemax) < settings.Rate + incrt && event.Nick != settings.Ircnick {
-				sskymf(irccon, db, rnd, event.Nick, settings, 0)
+				rnd.Intn(elib.Ratemax) < settings.Rate + incrt &&
+				event.Nick != settings.Ircnick {
+
+				sskymf(irccon, db, rnd, event.Nick, settings, lastsk, 0)
 				incrt = 0
 			}
 
@@ -246,15 +278,16 @@ func main() {
 					nval, err = strconv.Atoi(target[1])
 
 					if err == nil && nval > 0 && nval <= settings.Numln {
-						sskymf(irccon, db, rnd, target[0], settings, nval)
+						sskymf(irccon, db, rnd, target[0], settings, lastsk, nval)
 						incrt = 0
 					} else if nval == 0 {
-						fskymf(irccon, db, rnd, target[0], target[1:], settings)
+						fskymf(irccon, db, rnd, target[0], target[1:], settings, lastsk)
 						incrt = 0
 					}
 
 				} else {
-					sskymf(irccon, db, rnd, target[0], settings, 0)
+
+					sskymf(irccon, db, rnd, target[0], settings, lastsk, 0)
 					incrt = 0
 				}
 			}

@@ -113,9 +113,10 @@ func main() {
 	settings.Uname = rtext("Realname")
 	settings.Channel = rtext("Channel")
 	settings.Server = rtext("server:port (SSL only!)")
-	settings.Rate = rval("Rate (0-1000)", 0, 1000, 10)
-	settings.Kdel = rval("Keystroke delay in ms. (0-1000)", 0, 1000, 100)
-	settings.Randel = rval("Random delay in ms. (0-10000)", 0, 10000, 700)
+	settings.Rate = rval("Rate (0-1000)", 0, elib.Ratemax, 10)
+	settings.Kdel = rval("Keystroke delay in ms. (0-1000)", 0, elib.Kdelmax, 100)
+	settings.Randel = rval("Random delay in ms. (0-10000)", 0, elib.Randelmax, 700)
+	settings.Dnrmem = rval("Avoid repetition (0-20) times", 0, elib.Dnrmemmax, 5)
 
 	s, err:= json.Marshal(settings)
 	cherr(err)
