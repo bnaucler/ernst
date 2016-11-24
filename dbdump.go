@@ -40,7 +40,7 @@ func main() {
 	for k := 1; k <= settings.Numln; k++ {
 		v, err := elib.Rdb(db, k)
 		cherr(err)
-		if verb { fmt.Printf("%d: %v\n", settings.Numln, string(v))
+		if verb { fmt.Printf("%d: %v\n", k, string(v))
 		} else { fmt.Printf("%v\n", string(v)) }
 	}
 
