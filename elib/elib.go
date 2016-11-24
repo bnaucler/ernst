@@ -1,16 +1,22 @@
-package dbfunc
+package elib
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"github.com/boltdb/bolt"
 )
 
 var Cbuc = []byte("skymf")
+
 const Ratemax = int(1000)
 const Kdelmax = int(1000)
 const Randelmax = int(10000)
 const Dnrmemmax = int(20)
+
+const Addkey = string("!skymf")
+const Setkey = string("!sset")
+const Statkey = string("!skymfstat")
 
 type Settings struct {
 	Numln		int
@@ -22,6 +28,10 @@ type Settings struct {
 	Kdel		int
 	Randel		int
 	Dnrmem		int
+}
+
+func Cherr(e error) {
+	if e != nil { log.Fatal(e) }
 }
 
 func Wrdb(db *bolt.DB, k int, v []byte) (err error) {
