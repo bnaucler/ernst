@@ -22,26 +22,25 @@ func main() {
 	settings := elib.Settings{}
 	var verb bool
 
-	if len(os.Args) < 3 || len(os.Args) > 4 {
-		cherr(fmt.Errorf("Usage: %s <file> <bucket> [v]\n", os.Args[0]))
+	if len(os.Args) < 2 || len(os.Args) > 3 {
+		cherr(fmt.Errorf("Usage: %s <file> [v]\n", os.Args[0]))
 	}
 
 	dbname := os.Args[1]
-	cbuc := []byte(os.Args[2])
-	if len(os.Args) == 4 && os.Args[3] == "v" { verb = true }
+	if len(os.Args) == 3 && os.Args[2] == "v" { verb = true };
 
 	db, err := bolt.Open(dbname, 0640, nil)
 	cherr(err)
 	defer db.Close()
 
-	tmp, err := elib.Rdb(db, 0, cbuc)
+	tmp, err := elib.Rdb(db, 0)
 	cherr(err)
 	json.Unmarshal(tmp, &settings)
 
 	for k := 1; k <= settings.Numln; k++ {
-		v, err := elib.Rdb(db, k, cbuc)
+		v, err := elib.Rdb(db, k)
 		cherr(err)
-		if verb { fmt.Printf("%d: %v\n", settings.Numln, string(v))
+		if verb { fmt.Printf("%d: %v\n", k, string(v))
 		} else { fmt.Printf("%v\n", string(v)) }
 	}
 
