@@ -39,8 +39,15 @@ The BoltDB team
 * Convert settings to map
 * Avoid repetition when directly addressed
 * Multiple channels
+	- As []string
 * Multiple servers
+	- As server[port]-map
+* Support for non-SSL servers
+* Auto-reconnect
 * Shared delay between threads
+* Search function returning number (privmsg)
+* Search and remove
+* Remove last added
 * Increased ratio on trigger words
 * PRIVMSG goroutine as func
 

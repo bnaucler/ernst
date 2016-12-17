@@ -15,6 +15,7 @@ const Randelmax = int(10000)
 const Dnrmemmax = int(20)
 
 const Addkey = string("!skymf")
+const Rmkey = string("!srm")
 const Setkey = string("!sset")
 const Statkey = string("!skymfstat")
 

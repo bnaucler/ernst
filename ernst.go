@@ -43,8 +43,46 @@ func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 	return settings.Numln
 }
 
+func rskymf(irccon *irc.Connection, db *bolt.DB, event *irc.Event,
+	rnd *rand.Rand, settings *elib.Settings, lastsk []int) []int {
+
+	resp := "Kunde ej ta bort skymf"
+	dbch := false
+	var rsk string
+
+	bar, err := elib.Rdb(db, lastsk[0])
+	rsk = string(bar)
+	irccon.Privmsg(settings.Channel, rsk)
+
+	if lastsk[0] != settings.Numln && lastsk[0] != 0 && err == nil {
+		tmps, err := elib.Rdb(db, settings.Numln)
+
+		if err == nil {
+			err = elib.Wrdb(db, lastsk[0], tmps)
+			dbch = true
+		}
+	} else if lastsk[0] == settings.Numln {
+		dbch = true
+	}
+
+	if dbch {
+		settings.Numln--;
+		senc, _ := json.Marshal(settings)
+		err = elib.Wrdb(db, 0, senc)
+		resp = fmt.Sprintf("Skymf \"%v\" borttagen.", rsk)
+
+		for a := 0; a < elib.Dnrmemmax - 1; a++ { lastsk[a] = lastsk[(a + 1)] }
+	}
+
+	time.Sleep(time.Duration(len(resp) * settings.Kdel +
+		rnd.Intn(settings.Randel)) * time.Millisecond)
+	irccon.Privmsg(settings.Channel, resp)
+
+	return lastsk
+}
+
 func sskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
-	target string, settings elib.Settings, lastsk []int, ln int) bool {
+	target string, settings elib.Settings, lastsk []int, ln int) []int {
 
 	if ln == 0 && settings.Dnrmem > 0 {
 		inmem := true
@@ -72,11 +110,11 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 		lastsk[0] = ln
 	}
 
-	return true
+	return lastsk
 }
 
 func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
-	target string, kw []string, settings elib.Settings, lastsk []int) bool {
+	target string, kw []string, settings elib.Settings, lastsk []int) []int {
 
 	kwln := len(kw)
 	var (reqnum, cqual, tqual int)
@@ -101,16 +139,6 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	}
 
 	return sskymf(irccon, db, rnd, target, settings, lastsk, reqnum)
-}
-
-func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
-
-	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d, dnrmem: %d/%d",
-		event.Nick, settings.Rate, elib.Ratemax,
-		settings.Kdel, elib.Kdelmax, settings.Randel, elib.Randelmax,
-		settings.Dnrmem, elib.Dnrmemmax)
-
-	return
 }
 
 func csetshow(event *irc.Event, settings *elib.Settings, setvar string) (resp string) {
@@ -248,14 +276,19 @@ func main() {
 				cset(irccon, db, rnd, event, &settings)
 
 			} else if event.Arguments[0] == settings.Channel &&
+				strings.HasPrefix(lcstr, elib.Rmkey) {
+
+				lastsk = rskymf(irccon, db, event, rnd, &settings, lastsk)
+
+			} else if event.Arguments[0] == settings.Channel &&
 				strings.Contains(lcstr, lcnick) {
 
 				kw := strings.Split(event.Arguments[1], " ")
 
 				if strings.Contains(kw[0], lcnick) {
-					fskymf(irccon, db, rnd, event.Nick, kw[1:], settings, lastsk)
+					lastsk = fskymf(irccon, db, rnd, event.Nick, kw[1:], settings, lastsk)
 				} else {
-					sskymf(irccon, db, rnd, event.Nick, settings, lastsk, 0)
+					lastsk = sskymf(irccon, db, rnd, event.Nick, settings, lastsk, 0)
 				}
 				incrt = 0
 
@@ -263,7 +296,7 @@ func main() {
 				rnd.Intn(elib.Ratemax) < settings.Rate + incrt &&
 				event.Nick != settings.Ircnick {
 
-				sskymf(irccon, db, rnd, event.Nick, settings, lastsk, 0)
+				lastsk = sskymf(irccon, db, rnd, event.Nick, settings, lastsk, 0)
 				incrt = 0
 
 			} else if event.Arguments[0] == settings.Ircnick {
@@ -274,16 +307,16 @@ func main() {
 					nval, err = strconv.Atoi(target[1])
 
 					if err == nil && nval > 0 && nval <= settings.Numln {
-						sskymf(irccon, db, rnd, target[0], settings, lastsk, nval)
+						lastsk = sskymf(irccon, db, rnd, target[0], settings, lastsk, nval)
 						incrt = 0
 					} else if nval == 0 {
-						fskymf(irccon, db, rnd, target[0], target[1:], settings, lastsk)
+						lastsk = fskymf(irccon, db, rnd, target[0], target[1:], settings, lastsk)
 						incrt = 0
 					}
 
 				} else {
 
-					sskymf(irccon, db, rnd, target[0], settings, lastsk, 0)
+					lastsk = sskymf(irccon, db, rnd, target[0], settings, lastsk, 0)
 					incrt = 0
 				}
 			} else {
