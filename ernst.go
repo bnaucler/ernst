@@ -141,6 +141,16 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	return sskymf(irccon, db, rnd, target, settings, lastsk, reqnum)
 }
 
+func csetlist(event *irc.Event, settings *elib.Settings) (resp string) {
+
+	resp = fmt.Sprintf("%v: rate: %d/%d, kdel: %d/%d, randel: %d/%d, dnrmem: %d/%d",
+		event.Nick, settings.Rate, elib.Ratemax,
+		settings.Kdel, elib.Kdelmax, settings.Randel, elib.Randelmax,
+		settings.Dnrmem, elib.Dnrmemmax)
+
+	return
+}
+
 func csetshow(event *irc.Event, settings *elib.Settings, setvar string) (resp string) {
 
 	if setvar == "rate" {
