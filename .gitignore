@@ -1,7 +1,7 @@
 *.db
 *.bak
+dbdump/dbdump
+mkdb/mkdb
 ernst
-mkdb
-dbdump
 junk/*
 skymfer2.txt
