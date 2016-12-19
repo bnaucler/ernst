@@ -6,15 +6,17 @@ B Naucler (mail@bnaucler.se)
 
 ## Setup
 1. Add your favorite insults, one per line to insults.txt (UTF8 encoding)
-2. `go build mkdb.go`
-3. `./mkdb insults.txt ernst.db`
-4. `go run ernst.go`
+2. `go build -o mkdb/mkdb mkdb/mkdb.go`
+3. `mkdb/mkdb insults.txt ernst.db`
+4. `go build -o ernst *.go`
+5. `./ernst`
 
 You can use `skymfer.txt` instead of your own list if you want to be insulted in Swedish.
 
 ## Usage
 Insults are added with !skymf \<insult\> in the channel.  
-Number of insults are reported with !skymfstat(s).
+Number of insults are reported with !skymfstat(s).  
+Last insult spoken is removed from database with !srm.
 
 ## Configuration options
 Some options can be configured with !sset in the channel. For more extensive configuration, poke around in ernst.go and elib.go.
