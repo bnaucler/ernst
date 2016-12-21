@@ -503,7 +503,6 @@ Hur gammal är du egentligen?
 Hur kommer man ens på idén att påstå något dylikt?
 Hur lyckas du alltid vara så otroligt motbjudande?
 Hur långt har du kommit i tolvstegsprogrammet?
-Hur många varv finns det på en klocka?
 Hur många år har du gått om nu, 10?
 Hur mår du, Skakis?
 Hur är du funtad egentligen?
@@ -753,6 +752,7 @@ Köpt buttplug på second hand?
 LOL. Är du stukad i roten eller?
 Lakritstomte!
 Lena Handén är den enda flickvännen du någonsin kommer ha.
+Leptosom!
 Lodis.
 Lugna ner dig!
 Luktar som att du fistat en låda ålrens, sick bastard.
@@ -863,6 +863,7 @@ Oroa dig inte alltför mycket; nån gång innan du dör får du säkert användn
 Otroligt, man får plats med en hel vattenbuffel i käften på dig.
 Passa dig jävligt noga.
 Passa dig. Jag känner Loos-skräcken.
+Pingstvän!
 Piratkopierare ger jag inte mycket för. Du har väl inte betalat för ett datorprogram under hela din livstid?
 Piss-alkis!
 Pissa dig själv i ansiktet! Jag vet att du kommer älska det.
@@ -1039,6 +1040,7 @@ Var som folk för fan.
 Varför har du en tunna ister insmetad i ansiktet?
 Varför lyssnar du inte på vad jag säger? Du är värdelös!
 Varför måste du jämt vara så bångstyrig?
+Varför är du så tjurig? Inte fått din dagliga dos mjölke?
 Varje gång jag tänker på dig förtvinar min hjärna en aning.
 Vem har skitit i din mun?
 Vem släppte ut dig?
@@ -1101,7 +1103,6 @@ sen ligger du där som en strandad manet.
 Ät skit och hö.
 Ät spya ditt bulemioffer!
 Äter du med såg och grep?
-Å när ska vi lämna rummen???
 Åk hem till skansen, dina kusiner väntar.
 Åk till Asien!
 Ååh, du är så snobbig!
