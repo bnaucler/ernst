@@ -486,6 +486,7 @@ Har du piri-piri i röven, eller vad fan är det frågan om?
 Har du problem?
 Har du svalt en bandyklubba eller är du för osäker för att lyfta blicken från marken?
 Har du verkligen svenskt medborgarskap? Jag tror att invandrarmyndigheten skulle vara intresserad av din uppehållsort!
+Har hört att du behöver en gaffeltruck för att komma ur sängen på morgonen?
 Har inte du en virkning att avsluta eller nåt?
 Har någon drogat dig eller?
 Har någon glömt byta blöja på dig?
@@ -886,6 +887,7 @@ Röv-gök.
 SLUTA SKRIKA!
 Sa du att du gillar att packa bajs? ok.
 Saltgurka!
+Samlar du på olika sorters cancer?
 Selot!
 Sepe. Gå hem.
 Sitter du och super på jobbet igen?
