@@ -48,10 +48,9 @@ func rskymf(irccon *irc.Connection, db *bolt.DB, event *irc.Event,
 
 	resp := "Kunde ej ta bort skymf"
 	dbch := false
-	var rsk string
 
 	bar, err := elib.Rdb(db, lastsk[0])
-	rsk = string(bar)
+	rsk := string(bar)
 
 	if lastsk[0] != settings.Numln && lastsk[0] != 0 && err == nil {
 		tmps, err := elib.Rdb(db, settings.Numln)
@@ -120,6 +119,11 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	lckw := make([]string, kwln)
 
 	for a := 0; a < kwln; a++ { lckw[a] = strings.ToLower(kw[a]) }
+	for a := 0; a < kwln; a++ {
+		for _, val := range elib.Spcchar {
+			lckw[a] = strings.Trim(lckw[a], val)
+		}
+	}
 
 	for k := 0; k <= settings.Numln; k++ {
 		v, err := elib.Rdb(db, k)

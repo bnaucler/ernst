@@ -19,6 +19,8 @@ const Rmkey = string("!srm")
 const Setkey = string("!sset")
 const Statkey = string("!skymfstat")
 
+var Spcchar = []string{",", ".", "!", "?", ";", ":"}
+
 type Settings struct {
 	Numln		int
 	Rate		int

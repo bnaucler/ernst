@@ -27,8 +27,8 @@ Some options can be configured with !sset in the channel. For more extensive con
 * dnrmem (0-20) number of insults to remember and avoid repetition. Default: 5
 
 ## Dump database to file
-1. `go build dbdump.go`  
-2. `./dbdump ernst.db > insults.txt`
+1. `go build -o dbdump/dbdump dbdump/dbdump.go`  
+2. `dbdump/dbdump ernst.db > insults.txt`
 
 ## Thanks to
 \#ljusdal @ EFNet  
