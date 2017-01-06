@@ -23,6 +23,7 @@ import (
 const dbname = "./ernst.db"
 const erresp = "Vad fan är det frågan om?"
 
+// Add insult
 func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 	rnd *rand.Rand, settings elib.Settings, skymf string) int {
 
@@ -43,6 +44,7 @@ func askymf(db *bolt.DB, irccon *irc.Connection, event *irc.Event,
 	return settings.Numln
 }
 
+// Remove insult
 func rskymf(irccon *irc.Connection, db *bolt.DB, event *irc.Event,
 	rnd *rand.Rand, settings *elib.Settings, lastsk []int) []int {
 
@@ -79,6 +81,7 @@ func rskymf(irccon *irc.Connection, db *bolt.DB, event *irc.Event,
 	return lastsk
 }
 
+// Say insult to channel
 func sskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	target string, settings elib.Settings, lastsk []int, ln int) []int {
 
@@ -111,6 +114,7 @@ func sskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	return lastsk
 }
 
+// Search for insult
 func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 	target string, kw []string, settings elib.Settings, lastsk []int) []int {
 

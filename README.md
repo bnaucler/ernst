@@ -6,10 +6,12 @@ B Naucler (mail@bnaucler.se)
 
 ## Setup
 1. Add your favorite insults, one per line to insults.txt (UTF8 encoding)
-2. `go build -o mkdb/mkdb mkdb/mkdb.go`
-3. `mkdb/mkdb insults.txt ernst.db`
-4. `go build -o ernst *.go`
-5. `./ernst`
+2. `go get github.com/bnaucler/ernst`
+3. `cd $GOPATH/src/github.com/bnaucler/ernst`
+4. `go build -o mkdb/mkdb mkdb/mkdb.go`
+5. `mkdb/mkdb insults.txt ernst.db`
+6. `go build -o ernst *.go`
+7. `./ernst`
 
 You can use `skymfer.txt` instead of your own list if you want to be insulted in Swedish.
 
