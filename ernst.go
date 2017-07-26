@@ -134,7 +134,7 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 		cqual = 0
 		cstr := string(v)
 		for a := 0; a < kwln; a++ {
-			if strings.Contains(cstr, lckw[a]) {
+			if strings.Contains(strings.ToLower(cstr), lckw[a]) {
 				cqual++
 				if cqual > tqual {
 					tqual = cqual
