@@ -503,6 +503,7 @@ Har du piri-piri i röven, eller vad fan är det frågan om?
 Har du problem?
 Har du svalt en bandyklubba eller är du för osäker för att lyfta blicken från marken?
 Har du verkligen svenskt medborgarskap? Jag tror att invandrarmyndigheten skulle vara intresserad av din uppehållsort!
+Har fontanellen läkt ihop sedan du blev våldtagen?
 Har hört att du behöver en gaffeltruck för att komma ur sängen på morgonen?
 Har inte du en virkning att avsluta eller nåt?
 Har någon drogat dig eller?
@@ -752,6 +753,7 @@ Jävla miljöpartist.
 Kan du inte bara gå och dö?
 Kan du inte hämta en kopp kaffe åt mig, stumpan?
 Kan du kanske tala om för mig vad i helvete du pratar om?
+Kan inte bestämma mig för om du ska kölhalas eller gå på plankan.
 Kan inte du bara gå härifrån?
 Kanske dags att skyffla in framfallet?
 Klia mig på ryggen, ditt värdelösa kräk.
