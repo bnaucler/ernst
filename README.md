@@ -38,6 +38,7 @@ Thomas Jager
 The BoltDB team  
 
 ## TODO
+* This code base is a mess and in urgent need of refactoring
 * Support for channel keys
 * Definition of triggers in settings struct
 * Convert settings to map

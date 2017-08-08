@@ -120,6 +120,7 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 
 	kwln := len(kw)
 	var (reqnum, cqual, tqual int)
+    var used bool
 	lckw := make([]string, kwln)
 
 	for a := 0; a < kwln; a++ { lckw[a] = strings.ToLower(kw[a]) }
@@ -129,20 +130,31 @@ func fskymf(irccon *irc.Connection, db *bolt.DB, rnd *rand.Rand,
 		}
 	}
 
-	for k := 0; k <= settings.Numln; k++ {
+	for k := 1; k <= settings.Numln - 1; k++ {
 		v, err := elib.Rdb(db, k)
 		cqual = 0
 		cstr := string(v)
-		for a := 0; a < kwln; a++ {
-			if strings.Contains(strings.ToLower(cstr), lckw[a]) {
-				cqual++
-				if cqual > tqual {
-					tqual = cqual
-					reqnum = k
-				}
-			}
-		}
+
+        if settings.Dnrmem > 0 {
+            for a := 0; a < settings.Dnrmem; a++ {
+                if k == lastsk[a] { used = true }
+            }
+        }
+
+        if used == false {
+            for a := 0; a < kwln; a++ {
+                if strings.Contains(strings.ToLower(cstr), lckw[a]) {
+                    cqual++
+                    if cqual > tqual {
+                        tqual = cqual
+                        reqnum = k
+                    }
+                }
+            }
+        }
+
 		elib.Cherr(err)
+        used = false
 	}
 
 	return sskymf(irccon, db, rnd, target, settings, lastsk, reqnum)
