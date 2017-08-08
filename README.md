@@ -42,7 +42,6 @@ The BoltDB team
 * Support for channel keys
 * Definition of triggers in settings struct
 * Convert settings to map
-* Avoid repetition when directly addressed
 * Multiple channels
 	- As []string
 * Multiple servers
@@ -52,7 +51,6 @@ The BoltDB team
 * Shared delay between threads
 * Search function returning number (privmsg)
 * Search and remove
-* Remove last added
 * Increased ratio on trigger words
 * PRIVMSG goroutine as func
 
