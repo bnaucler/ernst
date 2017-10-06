@@ -1117,6 +1117,7 @@ Vårda ditt språk, unge man!
 White trash!
 Who's your daddy?
 Your ass is mine!
+git reset --hard HEAD@{20}
 jf.
 sen ligger du där som en strandad manet.
 Än sen då?
